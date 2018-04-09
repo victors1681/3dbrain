@@ -15,8 +15,10 @@ class AbstractVRApplication {
 
     this._scene = new THREE.Scene()
     this._scene.add(this._camera)
+    this._scene.background = new THREE.Color(0xcce0ff)
+    this._scene.fog = new THREE.Fog(0xcce0ff, 500, 10000)
 
-    this._renderer = new THREE.WebGLRenderer()
+    this._renderer = new THREE.WebGLRenderer({antialias: true})
     this._renderer.setPixelRatio(window.devicePixelRatio)
     this._renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(this._renderer.domElement)

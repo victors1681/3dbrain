@@ -33,7 +33,7 @@
     "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^1.1.4",
     "friendly-errors-webpack-plugin": "^1.6.1",
-    "glslify": "^6.1.0",
+    "glslify": "^6.1.1",
     "glslify-loader": "^1.0.2",
     "html-webpack-plugin": "^2.30.1",
     "ify-loader": "^1.0.4",
@@ -64,7 +64,8 @@
     "glsl-noise": "0.0.0",
     "glslify-fancy-imports": "^1.0.1",
     "glslify-hex": "^2.0.1",
-    "three": "^0.89.0",
+    "three": "0.91.0",
+    "three-bas": "^2.6.0",
     "webvr-polyfill": "^0.10.2",
     "webvr-ui": "^0.10.0"
   },

@@ -1,7 +1,5 @@
 import './css/style.css'
-import Main from './js/main'
-// import Main from './js/mainWagner'
-// import Main from './js/mainVR'
+import Brain2 from './js/Brain2'
 
 // eslint-disable-next-line
-new Main()
+new Brain2()
