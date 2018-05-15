@@ -1,5 +1,5 @@
 import './css/style.css'
-import Brain2 from './js/Brain2'
+import Brain3 from './js/Brain3'
 
 // eslint-disable-next-line
-new Brain2()
+new Brain3()

@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import 'three/examples/js/controls/OrbitControls'
+import * as Stats from 'three/examples/js/libs/stats.min'
 
 class AbstractApplication {
   constructor () {
@@ -21,11 +22,15 @@ class AbstractApplication {
 
     document.body.appendChild(this._renderer.domElement)
 
+    this._stats = this.initStats(document.body)
+
     this._controls = new THREE.OrbitControls(this._camera, this._renderer.domElement)
     // this._controls.addEventListener( 'change', render ) // add this only if there is no animation loop (requestAnimationFrame)
     this._controls.enableDamping = true
     this._controls.dampingFactor = 0.25
     this._controls.enableZoom = true
+    this._controls.autoRotate = true
+    // this._controls.autoRotateSpeed = 1.0
 
     window.addEventListener('resize', this.onWindowResize.bind(this), false)
   }
@@ -40,6 +45,16 @@ class AbstractApplication {
 
   get scene () {
     return this._scene
+  }
+
+  initStats (render) {
+    const stats = new Stats()
+    stats.setMode(0)
+    stats.domElement.style.position = 'absolute'
+    stats.domElement.style.left = '0px'
+    stats.domElement.style.tip = '0px'
+    render.appendChild(stats.domElement)
+    return stats
   }
 
   onWindowResize () {

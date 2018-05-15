@@ -123,11 +123,11 @@ class Brain2 extends AbstractApplication {
   ParticleSystem () {
     var prefabGeometry = new THREE.TetrahedronGeometry(1)
 
-    var prefabCount = this.uniqueBrain.attributes.position.array.length //5000
+    var prefabCount = this.uniqueBrain.attributes.position.array.length // 5000
 
     console.log('shape vertices', prefabGeometry)
-     var geometry = new BAS.PrefabBufferGeometry(prefabGeometry, prefabCount)
-    //var geometry = new BAS.PointBufferGeometry(this.uniqueBrain.attributes.position.array.length)
+    var geometry = new BAS.PrefabBufferGeometry(prefabGeometry, prefabCount)
+    // var geometry = new BAS.PointBufferGeometry(this.uniqueBrain.attributes.position.array.length)
 
     var i, j, offset
 
