@@ -4,6 +4,8 @@ import 'three/examples/js/loaders/OBJLoader'
 class Loaders {
   constructor (startAnimation) {
     this.BRAIN_MODEL = {}
+    this.AMELIA_MODEL = {}
+    this.models = ['brain-parts-big_06.OBJ', 'amelia_standing.obj']
     this.loadingManager = new THREE.LoadingManager()
     this.startAnimation = startAnimation
     this.loadingManager.onLoad = this.handlerLoad.bind(this)
@@ -27,14 +29,25 @@ class Loaders {
   handlerError (url) {
     console.log('There was an error loading ' + url)
   }
-  setModel (model) {
-    this.BRAIN_MODEL = model
+  setModel (model, i) {
+    switch (i) {
+      case 0:
+        this.BRAIN_MODEL = model
+        break
+      case 1:
+        this.AMELIA_MODEL = model
+        break
+      default:
+        this.BRAIN_MODEL = model
+    }
   }
 
   loadOBJs () {
     let loader = new THREE.OBJLoader(this.loadingManager)
-    loader.load('static/models/brain-parts-big_06.OBJ', (model) => {
-      this.setModel(model)
+    this.models.forEach((m, i) => {
+      loader.load(`static/models/${m}`, (model) => {
+        this.setModel(model, i)
+      })
     })
   }
 }

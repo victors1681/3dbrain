@@ -53,24 +53,52 @@ class Brain3 extends AbstractApplication {
       color: '0xCED7DF',
       specular: 0x111111
     })
-    let plane = new THREE.Mesh(geometry, material)
-    plane.receiveShadow = true
-    plane.position.y = -160
-    plane.rotation.x = -0.5 * Math.PI
-    this.scene.add(plane)
+    this.plane = new THREE.Mesh(geometry, material)
+    this.plane.receiveShadow = true
+    this.plane.position.y = -160
+    this.plane.rotation.x = -0.5 * Math.PI
+    this.scene.add(this.plane)
   }
 
   initGui () {
     this.controls = new function () {
       this.rotationSpeed = 0.5
       this.color0 = 0xffffff
+      this.floor = 0xffffff
+      this.stop = false
     }()
 
     var gui = new dat.GUI()
     gui.add(this.controls, 'rotationSpeed', 0, 2.0)
     gui.addColor(this.controls, 'color0').onChange((e) => {
-      console.log(new THREE.Color(e))
       return this.particlesColor = new THREE.Color(e)
+    })
+    gui.addColor(this.controls, 'floor').onChange((e) => {
+      console.log(this.plane.material.color)
+      this.plane.material.color = new THREE.Color(e)
+    })
+    gui.add(this.controls, 'stop').onChange((e) => {
+      console.log(e)
+      if (e) {
+        const progress = { p: 0.0 }
+        TweenMax.fromTo(progress, 1.0, {p: 0.0}, { p: 1.0,
+          ease: Power0.easeIn,
+          onUpdate: (value) => {
+            this.material.uniforms['uProgress'].value = progress.p
+            this.system.customDepthMaterial.uniforms['uProgress'].value = progress.p
+            this.system.customDistanceMaterial.uniforms['uProgress'].value = progress.p
+          }})
+      } else {
+        const progress = { p: 1.0 }
+        TweenMax.fromTo(progress, 1.0, {p: 1.0}, { p: 0.0,
+          ease: Power0.easeIn,
+          onUpdate: (value) => {
+            this.material.uniforms['uProgress'].value = progress.p
+            this.system.customDepthMaterial.uniforms['uProgress'].value = progress.p
+            this.system.customDistanceMaterial.uniforms['uProgress'].value = progress.p
+          }})
+      }
+      // return this.material.uniforms['test'].value = e
     })
   }
 
@@ -89,8 +117,25 @@ class Brain3 extends AbstractApplication {
     console.log('Unique Geometry', this.endPointsCollections)
   }
 
+  loadAmelia () {
+    const ameliaBuffer = []
+
+    console.error('AMELIA', this.loaders.AMELIA_MODEL)
+    //  this.scene.add(this.loaders.AMELIA_MODEL)
+    this.loaders.AMELIA_MODEL.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.geometry.verticesNeedUpdate = true
+        ameliaBuffer.push(child.geometry)
+      }
+    })
+
+    this.endPointsCollectionsAmelia = THREE.BufferGeometryUtils.mergeBufferGeometries(ameliaBuffer)
+    console.log('Amelia all Points buffer', this.endPointsCollectionsAmelia)
+  }
+
   runAnimation () {
     this.addBrain()
+    this.loadAmelia()
     this.startAnimation()
     this.animate()
   }
@@ -127,15 +172,16 @@ class Brain3 extends AbstractApplication {
         var curPicPoints = me.endPointsCollections.attributes.position.array
 
         var aEndPos = animation.geometry.attributes.aEndPos
+
         var aEndColor = animation.geometry.attributes.aEndColor
 
         for (var i = 0; i < aEndPos.array.length; i++) {
           // use current picture info to set aEndPos and aEndColor of buffer geometry,
           // if picture info length is less than geometry points length, set default value
           if (i < curPicPoints.length) {
-            aEndPos.array[i * 3 + 0] = curPicPoints[i * 3 + 0]
-            aEndPos.array[i * 3 + 1] = curPicPoints[i * 3 + 1]
-            aEndPos.array[i * 3 + 2] = curPicPoints[i * 3 + 2]
+            aEndPos.array[i * 3 + 0] = curPicPoints[i * 3 + 0] || 0
+            aEndPos.array[i * 3 + 1] = curPicPoints[i * 3 + 1] || 0
+            aEndPos.array[i * 3 + 2] = curPicPoints[i * 3 + 2] || 0
 
             aEndColor.array[i * 3 + 0] = me.particlesColor.r
             aEndColor.array[i * 3 + 1] = me.particlesColor.g
@@ -173,33 +219,37 @@ class Brain3 extends AbstractApplication {
   }
 
   ParticleSystem () {
-    var curPicPoints = this.endPointsCollections.attributes.position.array
-    const me = this
-    const count = curPicPoints.length
+    var brainPoints = this.endPointsCollections.attributes.position.array
+    var ameliaPoints = this.endPointsCollectionsAmelia.attributes.position.array
+
+    const count = ameliaPoints.length
     const radius = 200
-    const offset = radius
+
     const geometry = new BAS.PointBufferGeometry(count)
+
+    // geometry.createAttribute('aStartPos', 3, (data, index, num) => {
+    //   if (index < num / 2) {
+    //     var startVec3 = new THREE.Vector3()
+    //     var randSphere = this.getRandomPointOnSphere(radius)
+    //     startVec3.x = randSphere.x
+    //     startVec3.y = randSphere.y
+    //     startVec3.z = randSphere.z
+    //     startVec3.toArray(data)
+    //   }
+    // })
 
     geometry.createAttribute('aStartPos', 3, (data, index, num) => {
       var startVec3 = new THREE.Vector3()
-      var randSphere = this.getRandomPointOnSphere(radius)
-      startVec3.x = randSphere.x
-      startVec3.y = randSphere.y
-      startVec3.z = randSphere.z
+      // var randSphere = ameliaPoints[index]
+      startVec3.x = ameliaPoints[index * 3 + 0]
+      startVec3.y = ameliaPoints[index * 3 + 1] - 150
+      startVec3.z = ameliaPoints[index * 3 + 2]
       startVec3.toArray(data)
     })
 
     console.log('STAGE1!!!!')
     var color = new THREE.Color()
     geometry.createAttribute('aStartColor', 3, (data, index, count) => {
-      // console.log(me.particlesColor)
-      // const r = me.particlesColor.r
-      // const g = me.particlesColor.g
-      // const b = me.particlesColor.b
-      //
-      // color.setRGB(r, g, b)
-      // color.toArray()
-
       const h = index / count
       const s = THREE.Math.randFloat(0.4, 0.6)
       const l = THREE.Math.randFloat(0.4, 0.6)
@@ -210,12 +260,23 @@ class Brain3 extends AbstractApplication {
 
     console.log('STAGE2!!!!')
     // in end state, all points from a picture
-    this.aEndPos = geometry.createAttribute('aEndPos', 3)
-    this.aEndColor = geometry.createAttribute('aEndColor', 3)
+    this.aEndColor = geometry.createAttribute('aEndColor', 3, (data, index, num) => {
+      const r = this.particlesColor.r
+      const g = this.particlesColor.g
+      const b = this.particlesColor.b
 
-    // collect the brain Info
+      color.setRGB(r, g, b)
+      color.toArray(data)
+    })
 
-    this.aEndPos = curPicPoints.slice()
+    geometry.createAttribute('aEndPos', 3, (data, index, num) => {
+      var startVec3 = new THREE.Vector3()
+      // var randSphere = ameliaPoints[index]
+      startVec3.x = brainPoints[index * 3 + 0] || 0
+      startVec3.y = brainPoints[index * 3 + 1] || 0
+      startVec3.z = brainPoints[index * 3 + 2] || 0
+      startVec3.toArray(data)
+    })
 
     var duration = 1
     var maxPointDelay = 0.1
@@ -233,7 +294,10 @@ class Brain3 extends AbstractApplication {
       vertexColors: THREE.VertexColors,
       deptWrite: false,
       uniforms: {
-        uTime: { type: 'f', value: 0 }
+        uTime: { type: 'f', value: 0 },
+        test: { type: 'bool', value: false },
+        uProgress: { type: 'float', value: 0.0 },
+        uBackColor: {value: new THREE.Color().setHSL(0, 1.0, 1.0)}
       },
       uniformValues: {
         size: 2.0,
@@ -244,6 +308,8 @@ class Brain3 extends AbstractApplication {
       ],
       vertexParameters: [
         'uniform float uTime;',
+        'uniform bool test;',
+        'uniform float uProgress;',
         'attribute vec2 aDelayDuration;',
         'attribute vec3 aStartPos;',
         'attribute vec3 aEndPos;',
@@ -256,14 +322,17 @@ class Brain3 extends AbstractApplication {
       // variables declared here are available in all subsequent chunks
       vertexInit: [
         // calculate a progress value between 0.0 and 1.0 based on the vertex delay and duration, and the uniform time
-        'float tProgress = clamp(uTime - aDelayDuration.x, 0.0, aDelayDuration.y) / aDelayDuration.y;',
-        // ease the progress using one of the available easing functions
+        'float tProgress = clamp(uProgress - aDelayDuration.x, 0.0, aDelayDuration.y) / aDelayDuration.y;',
+        // // ease the progress using one of the available easing functions
         'tProgress = easeExpoInOut(tProgress);'
+        // 'tProgress = uProgress;'
+        // 'if(test){ tProgress = 0.0; } else { tProgress = 1.0 ;}'
       ],
       // this chunk is injected before all default position calculations (including the model matrix multiplication)
       vertexPosition: [
         // linearly interpolate between the start and end position based on tProgress
         // and add the value as a delta
+
         'transformed += mix(aStartPos, aEndPos, tProgress);'
       ],
       // this chunk is injected before all default color calculations
@@ -280,8 +349,7 @@ class Brain3 extends AbstractApplication {
         float distanceToCenter = distance(gl_PointCoord, vec2(0.5));
         float pct = 1.0 - smoothstep(0.0, 0.5, distanceToCenter);
         gl_FragColor = vec4(gl_FragColor.rgb, pct * gl_FragColor.a);
-      `
-      ]
+      `]
     })
 
     // Use THREE.point to create particles
