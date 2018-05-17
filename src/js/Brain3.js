@@ -9,7 +9,6 @@ import AbstractApplication from 'views/AbstractApplication'
 class Brain3 extends AbstractApplication {
   constructor () {
     super()
-    this.initGui()
     this.OBJ_MODELS = {}
     this.clock = new THREE.Clock()
     this.addBrain = this.addBrain.bind(this)
@@ -19,15 +18,15 @@ class Brain3 extends AbstractApplication {
     this.t = 0
     this.deltaTime = 0
     this.particlesColor = new THREE.Color(0xffffff)
-
+    this.particlesStartColor = new THREE.Color(0xffffff)
     this.loaders = new Loaders(this.runAnimation.bind(this))
   }
 
   createFloor () {
-    let light = new THREE.AmbientLight(0xffffff, 0.2)
-    this.scene.add(light)
+    this.ambienlight = new THREE.AmbientLight(0xDDE3E9, 0)
+    this.scene.add(this.ambienlight)
 
-    this.spotLight = new THREE.SpotLight(0xffffff, 1, 0, Math.PI / 2)
+    this.spotLight = new THREE.SpotLight(0xDDE3E9, 1, 0, Math.PI / 2)
     this.spotLight.position.set(0, 500, -10)
     this.spotLight.castShadow = true
 
@@ -38,20 +37,14 @@ class Brain3 extends AbstractApplication {
     this.spotLight.shadow.mapSize.height = 1024
 
     this.scene.add(this.spotLight)
-    var spotLightHelper = new THREE.SpotLightHelper(this.spotLight)
-    this.scene.add(spotLightHelper)
-
-    let testG = new THREE.BoxGeometry(50, 50, 50)
-    let testM = new THREE.MeshLambertMaterial({color: 0xff0000})
-    this.testBox = new THREE.Mesh(testG, testM)
-    this.testBox.castShadow = true
-    this.testBox.receiveShadow = true
-    // this.scene.add(this.testBox)
+    this.spotLightHelper = new THREE.SpotLightHelper(this.spotLight)
 
     let geometry = new THREE.PlaneBufferGeometry(20000, 20000)
     let material = new THREE.MeshPhongMaterial({
       color: '0xCED7DF',
-      specular: 0x111111
+      opacity: 0.5,
+      transparent: true,
+      shininess: 0.1
     })
     this.plane = new THREE.Mesh(geometry, material)
     this.plane.receiveShadow = true
@@ -63,16 +56,48 @@ class Brain3 extends AbstractApplication {
   initGui () {
     this.controls = new function () {
       this.rotationSpeed = 0.5
-      this.color0 = 0xffffff
-      this.floor = 0xffffff
+      this.color0 = 0xB8C5CF
+      this.startColor = 0x3EA6F2
+      this.floor = 0xDDE3E9
       this.stop = false
+      this.lightIntensity = 0.90
+      this.lightDistance = 500
+      this.lightAngle = Math.PI / 2
+      this.lightPenumbra = 0.1
+      this.lightDecay = 0.1
+      this.lightHelper = false
     }()
 
     var gui = new dat.GUI()
     gui.add(this.controls, 'rotationSpeed', 0, 2.0)
-    gui.addColor(this.controls, 'color0').onChange((e) => {
-      return this.particlesColor = new THREE.Color(e)
+    gui.add(this.controls, 'lightIntensity', 0.0, 2.0).onChange((val) => {
+      this.spotLight.intensity = val
     })
+
+    gui.add(this.controls, 'lightHelper').onChange((val) => {
+      if (val) {
+        this.scene.add(this.spotLightHelper)
+      } else {
+        this.scene.remove(this.spotLightHelper)
+      }
+    })
+    gui.add(this.controls, 'lightDistance', 0.0, 1800.0).onChange((val) => {
+      this.spotLight.position.set(0, val, -10)
+    })
+    gui.add(this.controls, 'lightAngle', 0.0, 1.0).onChange((val) => {
+      this.spotLight.angle = val
+    })
+    gui.add(this.controls, 'lightPenumbra', 0.0, 1.0).onChange((val) => {
+      this.spotLight.penumbra = val
+    })
+    gui.add(this.controls, 'lightDecay', 0.0, 2.0).onChange((val) => {
+      this.spotLight.decay = val
+    })
+
+    gui.addColor(this.controls, 'color0').onChange((e) => this.particlesColor = new THREE.Color(e))
+
+    gui.addColor(this.controls, 'startColor').onChange((e) => this.particlesStartColor = new THREE.Color(e))
+
     gui.addColor(this.controls, 'floor').onChange((e) => {
       console.log(this.plane.material.color)
       this.plane.material.color = new THREE.Color(e)
@@ -134,6 +159,7 @@ class Brain3 extends AbstractApplication {
   }
 
   runAnimation () {
+    this.initGui()
     this.addBrain()
     this.loadAmelia()
     this.startAnimation()
@@ -172,8 +198,16 @@ class Brain3 extends AbstractApplication {
         var curPicPoints = me.endPointsCollections.attributes.position.array
 
         var aEndPos = animation.geometry.attributes.aEndPos
+        var aStartPos = animation.geometry.attributes.aStartPos
 
         var aEndColor = animation.geometry.attributes.aEndColor
+        var aStartColor = animation.geometry.attributes.aStartColor
+
+        for (var i = 0; i < aStartPos.array.length; i++) {
+          aStartColor.array[i * 3 + 0] = me.particlesStartColor.r
+          aStartColor.array[i * 3 + 1] = me.particlesStartColor.g
+          aStartColor.array[i * 3 + 2] = me.particlesStartColor.b
+        }
 
         for (var i = 0; i < aEndPos.array.length; i++) {
           // use current picture info to set aEndPos and aEndColor of buffer geometry,
@@ -190,9 +224,10 @@ class Brain3 extends AbstractApplication {
             aEndPos.array[i * 3 + 0] = 0
             aEndPos.array[i * 3 + 1] = 0
             aEndPos.array[i * 3 + 2] = 0
-            aEndColor.array[i * 3 + 0] = 0
-            aEndColor.array[i * 3 + 1] = 0
-            aEndColor.array[i * 3 + 2] = 0
+
+            // aEndColor.array[i * 3 + 0] = 0
+            // aEndColor.array[i * 3 + 1] = 0
+            // aEndColor.array[i * 3 + 2] = 0
           }
         }
         aEndPos.needsUpdate = true
@@ -224,6 +259,7 @@ class Brain3 extends AbstractApplication {
 
     const count = ameliaPoints.length
     const radius = 200
+    const me = this
 
     const geometry = new BAS.PointBufferGeometry(count)
 
@@ -249,21 +285,22 @@ class Brain3 extends AbstractApplication {
 
     console.log('STAGE1!!!!')
     var color = new THREE.Color()
-    geometry.createAttribute('aStartColor', 3, (data, index, count) => {
-      const h = index / count
-      const s = THREE.Math.randFloat(0.4, 0.6)
-      const l = THREE.Math.randFloat(0.4, 0.6)
+    this.aEndColor = geometry.createAttribute('aStartColor', 3, (data, index, num) => {
+      const r = me.particlesStartColor.r
+      const g = me.particlesStartColor.g
+      const b = me.particlesStartColor.b
 
-      color.setHSL(h, s, l)
+      color.setRGB(r, g, b)
       color.toArray(data)
     })
 
     console.log('STAGE2!!!!')
     // in end state, all points from a picture
+
     this.aEndColor = geometry.createAttribute('aEndColor', 3, (data, index, num) => {
-      const r = this.particlesColor.r
-      const g = this.particlesColor.g
-      const b = this.particlesColor.b
+      const r = me.particlesColor.r
+      const g = me.particlesColor.g
+      const b = me.particlesColor.b
 
       color.setRGB(r, g, b)
       color.toArray(data)
@@ -340,6 +377,7 @@ class Brain3 extends AbstractApplication {
         // linearly interpolate between the start and end position based on tProgress
         // and add the value as a delta
         'vColor = mix(aStartColor, aEndColor, tProgress);'
+        // 'vColor = colorB;' //mix(colorA, colorB, abs(sin(uTime)));'
       ],
 
       // convert the point (default is square) to circle shape, make sure transparent of material is true
