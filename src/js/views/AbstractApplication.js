@@ -6,15 +6,18 @@ class AbstractApplication {
   constructor () {
     this._camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000)
     this._camera.position.z = 500
+    // this.ambienColor = '#E7EBF3'
 
     this._scene = new THREE.Scene()
-    this._scene.background = new THREE.Color('#B8C5CF')
+    // this._scene.background = new THREE.Color(this.ambienColor) //E7EBF3
     // this._scene.fog = new THREE.Fog(0xcce0ff, 100, 10000)
-    this._scene.fog = new THREE.Fog(0xB8C5CF, 250, 1300)
+    this._scene.fog = new THREE.Fog(0xC7D0E2, 250, 1300)
 
-    this._renderer = new THREE.WebGLRenderer({ antialias: true })
+    this._renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     this._renderer.setPixelRatio(window.devicePixelRatio)
     this._renderer.setSize(window.innerWidth, window.innerHeight)
+
+    this._renderer.setClearColor(0x00000, 0.0)
 
     this._renderer.shadowMap.enabled = true
     this._renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -29,7 +32,9 @@ class AbstractApplication {
     this._controls.enableDamping = true
     this._controls.dampingFactor = 0.25
     this._controls.enableZoom = true
-    this._controls.autoRotate = true
+    this._controls.minDistance = 0
+    this._controls.maxDistance = 1000
+    // this._controls.autoRotate = true
 
     window.addEventListener('resize', this.onWindowResize.bind(this), false)
   }

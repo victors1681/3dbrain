@@ -1,11 +1,20 @@
 body {
     width: 100%;
     height: 100%;
-    background-color: #000;
-    color: #fff;
+    background-color: #E7EBF3;
+    margin: 0px;
     margin: 0px;
     padding: 0;
     overflow: hidden;
+    background-image: -webkit-gradient(#E7EBF3,#C7D0E2,#E7EBF3);
+    /* Safari 5.1, iOS 5.0-6.1, Chrome 10-25, Android 4.0-4.3 */
+    background-image: -webkit-linear-gradient(#E7EBF3,#C7D0E2,#E7EBF3);
+    /* Firefox 3.6 - 15 */
+    background-image: -moz-linear-gradient(#E7EBF3,#C7D0E2,#E7EBF3);
+    /* Opera 11.1 - 12 */
+    background-image: -o-linear-gradient(#E7EBF3,#C7D0E2,#E7EBF3);
+    /* Opera 15+, Chrome 25+, IE 10+, Firefox 16+, Safari 6.1+, iOS 7+, Android 4.4+ */
+    background-image: linear-gradient(#E7EBF3,#C7D0E2,#E7EBF3);
 }
 
 /* Position the button VR on the bottom of the page. */
