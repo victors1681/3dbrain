@@ -5,10 +5,12 @@ import * as BAS from 'three-bas'
 import { TweenMax, Power0 } from 'gsap'
 import Loaders from './Loaders/Loaders'
 import AbstractApplication from 'views/AbstractApplication'
+import Chuncks from './services/chunks'
 
 class Brain3 extends AbstractApplication {
   constructor () {
     super()
+    this.chuncks = new Chuncks()
     this.OBJ_MODELS = {}
     this.clock = new THREE.Clock()
     this.addBrain = this.addBrain.bind(this)
@@ -20,6 +22,8 @@ class Brain3 extends AbstractApplication {
     this.particlesColor = new THREE.Color(0xffffff)
     this.particlesStartColor = new THREE.Color(0xffffff)
     this.loaders = new Loaders(this.runAnimation.bind(this))
+    this.pointSizeEffect = 0.1
+    this.memories = {}
   }
 
   createFloor () {
@@ -40,10 +44,10 @@ class Brain3 extends AbstractApplication {
     this.spotLightHelper = new THREE.SpotLightHelper(this.spotLight)
 
     let geometry = new THREE.PlaneBufferGeometry(20000, 20000)
-    //let material = new THREE.ShadowMaterial({ opacity: 0.w, color: '0xE7EBF3' })
+    // let material = new THREE.ShadowMaterial({ opacity: 0.w, color: '0xE7EBF3' })
     let material = new THREE.MeshPhongMaterial({
       // color: '0xCED7DF',
-      //color: 0xE7EBF3,
+      // color: 0xE7EBF3,
       opacity: 0.1,
       transparent: true
     })
@@ -69,6 +73,7 @@ class Brain3 extends AbstractApplication {
       this.lightDecay = 0.0
       this.lightHelper = false
       this.angle = 1.0
+      this.pointSizeEffect = 0.0
     }()
 
     var gui = new dat.GUI()
@@ -95,6 +100,9 @@ class Brain3 extends AbstractApplication {
     })
     gui.add(this.controls, 'lightDecay', 0.0, 2.0).onChange((val) => {
       this.spotLight.decay = val
+    })
+    gui.add(this.controls, 'pointSizeEffect', -500.0, 500.0).onChange((val) => {
+      this.pointSizeEffect = val
     })
 
     gui.addColor(this.controls, 'color0').onChange((e) => this.particlesColor = new THREE.Color(e))
@@ -143,15 +151,49 @@ class Brain3 extends AbstractApplication {
     console.error('brain', this.loaders.BRAIN_MODEL)
     this.brainBufferGeometries = []
     this.uniqueBrain = new THREE.BufferGeometry()
+
+    var memories = {
+      afective: [],
+      analitic: [],
+      process: [],
+      semantic: [],
+      episodic: [],
+      cerebellum: [],
+      bridge: [],
+      amigdala: []
+    }
+
     this.loaders.BRAIN_MODEL.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.geometry.verticesNeedUpdate = true
-        this.brainBufferGeometries.push(child.geometry)
+      if (!(child instanceof THREE.Mesh)) {
+        return
       }
+      child.geometry.verticesNeedUpdate = true
+      this.brainBufferGeometries.push(child.geometry)
+
+      memories = { ...memories, ...this.storeBrainVertices(child, memories) }
     })
 
     this.endPointsCollections = THREE.BufferGeometryUtils.mergeBufferGeometries(this.brainBufferGeometries)
     console.log('Unique Geometry', this.endPointsCollections)
+
+    this.memories = memories
+    console.log('Unique Geometry', this.memories)
+  }
+
+  storeBrainVertices (mesh, memories) {
+    const keys = Object.keys(memories)
+    const name = mesh.name
+
+    keys.map(m => {
+      if (name.includes(m)) {
+        if (memories[m].length) {
+          memories[m].push(mesh.geometry)
+          memories[m] = [THREE.BufferGeometryUtils.mergeBufferGeometries(memories[m])]
+          return memories
+        }
+        return memories[m].push(mesh.geometry)
+      }
+    })
   }
 
   loadAmelia () {
@@ -173,7 +215,7 @@ class Brain3 extends AbstractApplication {
   runAnimation () {
     this.initGui()
     this.addBrain()
-    this.loadAmelia()
+    // this.loadAmelia()
     this.startAnimation()
     this.animate()
   }
@@ -183,8 +225,11 @@ class Brain3 extends AbstractApplication {
     this.deltaTime += this.clock.getDelta()
 
     this.material.uniforms['uTime'].value = this.deltaTime
+    // console.log("tiime", Math.sin(this.deltaTime))
     this.system.customDepthMaterial.uniforms['uTime'].value = Math.sin(this.deltaTime)
     this.system.customDistanceMaterial.uniforms['uTime'].value = Math.sin(this.deltaTime)
+
+    this.material.uniforms['uPointSizeEffect'].value = this.pointSizeEffect
 
     this._stats.update()
     requestAnimationFrame(this.animate.bind(this))
@@ -215,11 +260,11 @@ class Brain3 extends AbstractApplication {
         var aEndColor = animation.geometry.attributes.aEndColor
         var aStartColor = animation.geometry.attributes.aStartColor
 
-        for (var i = 0; i < aStartPos.array.length; i++) {
-          aStartColor.array[i * 3 + 0] = me.particlesStartColor.r
-          aStartColor.array[i * 3 + 1] = me.particlesStartColor.g
-          aStartColor.array[i * 3 + 2] = me.particlesStartColor.b
-        }
+        // for (var i = 0; i < aStartPos.array.length; i++) {
+        //   aStartColor.array[i * 3 + 0] = me.particlesStartColor.r
+        //   aStartColor.array[i * 3 + 1] = me.particlesStartColor.g
+        //   aStartColor.array[i * 3 + 2] = me.particlesStartColor.b
+        // }
 
         for (var i = 0; i < aEndPos.array.length; i++) {
           // use current picture info to set aEndPos and aEndColor of buffer geometry,
@@ -271,12 +316,22 @@ class Brain3 extends AbstractApplication {
 
   ParticleSystem () {
     var brainPoints = this.endPointsCollections.attributes.position.array
-    var ameliaPoints = this.endPointsCollectionsAmelia.attributes.position.array
+    // var ameliaPoints = this.endPointsCollectionsAmelia.attributes.position.array
 
-    const count = ameliaPoints.length
+    const count = brainPoints.length
     const me = this
 
     const geometry = new BAS.PointBufferGeometry(count)
+
+    const shineGeometry = new BAS.PointBufferGeometry(this.memories.episodic[0].attributes.position.array.length)
+
+    shineGeometry.createAttribute('aEpisodic', 3, (data, index) => {
+      const v = new THREE.Vector3()
+      v.x = me.memories.episodic[0].attributes.position.array[index * 3 + 0] || 0
+      v.y = me.memories.episodic[0].attributes.position.array[index * 3 + 1] || 0
+      v.z = me.memories.episodic[0].attributes.position.array[index * 3 + 2] || 0
+      v.toArray(data)
+    })
 
     const loadingCircle = this.getLoadingPoints()
     geometry.createAttribute('aStartLoading', 3, (data, index, num) => {
@@ -287,21 +342,21 @@ class Brain3 extends AbstractApplication {
       startVec3.toArray(data)
     })
 
-    geometry.createAttribute('aStartPos', 3, (data, index, num) => {
-      var startVec3 = new THREE.Vector3()
-      startVec3.x = ameliaPoints[index * 3 + 0]
-      startVec3.y = ameliaPoints[index * 3 + 1] - 150
-      startVec3.z = ameliaPoints[index * 3 + 2]
-      startVec3.toArray(data)
-    })
+    // geometry.createAttribute('aStartPos', 3, (data, index, num) => {
+    //   var startVec3 = new THREE.Vector3()
+    //   startVec3.x = ameliaPoints[index * 3 + 0]
+    //   startVec3.y = ameliaPoints[index * 3 + 1] - 150
+    //   startVec3.z = ameliaPoints[index * 3 + 2]
+    //   startVec3.toArray(data)
+    // })
 
     var color = new THREE.Color()
-    this.aEndColor = geometry.createAttribute('aStartColor', 3, (data, index, num) => {
-      const h = THREE.Math.randFloat(0.1, 0.7)
-      const s = THREE.Math.randFloat(0.1, 0.7)
-      const l = THREE.Math.randFloat(0.1, 0.7)
+    this.aStartColor = geometry.createAttribute('aStartColor', 3, (data, index, num) => {
+      const r = me.particlesStartColor.r
+      const g = me.particlesStartColor.g
+      const b = me.particlesStartColor.b
 
-      color.setHSL(h, s, l)
+      color.setRGB(r, g, b)
       color.toArray(data)
     })
 
@@ -332,40 +387,6 @@ class Brain3 extends AbstractApplication {
       data[1] = duration
     })
 
-    const rotate = 'vec2 rotate2D(vec2 _st, float _angle){\n_st -= 0.5;\n_st =  mat2(cos(_angle),-sin(_angle), sin(_angle),cos(_angle)) * _st; \n  _st += 0.5; \n return _st;\n }\n'
-    const random2 = 'vec2 random2( vec2 p ) {\n' +
-        '    return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);\n' +
-        '}\n'
-    const noise = '// 2D Random\n' +
-        'float random (in vec2 st) {\n' +
-        '    return fract(sin(dot(st.xy,\n' +
-        '                         vec2(12.9898,78.233)))\n' +
-        '                 * 43758.5453123);\n' +
-        '}\n' +
-        '\n' +
-        '// 2D Noise based on Morgan McGuire @morgan3d\n' +
-        'float noise (in vec2 st) {\n' +
-        '    vec2 i = floor(st);\n' +
-        '    vec2 f = fract(st);\n' +
-        '\n' +
-        '    // Four corners in 2D of a tile\n' +
-        '    float a = random(i);\n' +
-        '    float b = random(i + vec2(1.0, 0.0));\n' +
-        '    float c = random(i + vec2(0.0, 1.0));\n' +
-        '    float d = random(i + vec2(1.0, 1.0));\n' +
-        '\n' +
-        '    // Smooth Interpolation\n' +
-        '\n' +
-        '    // Cubic Hermine Curve.  Same as SmoothStep()\n' +
-        '    vec2 u = f*f*(3.0-2.0*f);\n' +
-        '    // u = smoothstep(0.,1.,f);\n' +
-        '\n' +
-        '    // Mix 4 coorners porcentages\n' +
-        '    return mix(a, b, u.x) +\n' +
-        '            (c - a)* u.y * (1.0 - u.x) +\n' +
-        '            (d - b) * u.x * u.y;\n' +
-        '}'
-
     this.material = new BAS.PointsAnimationMaterial({
       transparent: true,
       blending: THREE.AdditiveBlending,
@@ -376,23 +397,25 @@ class Brain3 extends AbstractApplication {
         test: { type: 'bool', value: false },
         uProgress: { type: 'float', value: 0.0 },
         uBackColor: {value: new THREE.Color().setHSL(0, 100.0, 96)},
-        uAngle: { type: 'f', value: 1.0 }
+        uAngle: { type: 'f', value: 1.0 },
+        uPointSizeEffect: { type: 'f', value: 0.1 }
       },
       uniformValues: {
-        size: 2.3,
+        size: 2.5,
         sizeAttenuation: true
       },
       vertexFunctions: [
         BAS.ShaderChunk['ease_expo_in_out'],
         BAS.ShaderChunk['quaternion_rotation'],
-        rotate,
-        noise,
-        random2
+        this.chuncks.rotate,
+        this.chuncks.random,
+        this.chuncks.noise
       ],
 
       vertexParameters: [
         'uniform float uTime;',
         'uniform bool test;',
+        'uniform float uPointSizeEffect;',
         'uniform float uProgress;',
         'uniform float uAngle;',
         'attribute vec2 aDelayDuration;',
@@ -403,7 +426,11 @@ class Brain3 extends AbstractApplication {
         'attribute vec3 aEndColor;',
         'attribute float aStartOpacity;',
         'attribute float aEndOpacity;'
-
+      ],
+      varyingParameters: [
+        `
+          varying vec3 vParticle;
+          `
       ],
       // this chunk is injected 1st thing in the vertex shader main() function
       // variables declared here are available in all subsequent chunks
@@ -421,6 +448,7 @@ class Brain3 extends AbstractApplication {
         // and add the value as a delta
         //transformed += mix(aStartPos, aEndPos, tProgress);
         
+        //transformed += mix(aStartLoading, aEndPos, tProgress);
         
         if(tProgress < 0.5){ 
          vec2 pos = vec2(aStartLoading.xy*5.0);
@@ -439,15 +467,46 @@ class Brain3 extends AbstractApplication {
             transformed += vec3(test.x, test.y , aStartLoading.z * n);
         }
         }else{
-        transformed += mix(aStartLoading, aEndPos, tProgress);
+          transformed = mix(aStartLoading, aEndPos, tProgress);
         } 
-          `
+        
+       
+        `
       ],
       // this chunk is injected before all default color calculations
       vertexColor: [
         // linearly interpolate between the start and end position based on tProgress
         // and add the value as a delta
-        'vColor = mix(aStartColor, aEndColor, tProgress);'
+        `
+        vColor = mix(aStartColor, aEndColor, tProgress);
+        // for(int i = -100; i <=  100 ; i++){
+          gl_PointSize = size;
+          
+          //for(var i = 0.0 ; i < )
+          
+        //  if(aEndPos.y < 0.0) {
+            gl_PointSize = clamp( aEndPos.y * sin( -uPointSizeEffect/1000.0 + 3.1416 ), 1.0, size);
+            // not working gl_PointSize = smoothstep( 1.0, size, aEndPos.y * sin( -uPointSizeEffect/1000.0 + 3.1416 ));
+          //float pct += sin( -uPointSizeEffect/1000.0 + uTime );
+          //float pct += sin( -uPointSizeEffect/1000.0 + uTime );
+          
+          //gl_PointSize = mix(size, 0.1, pct * sin(uTime));
+            
+        //  }else{
+             //gl_PointSize = smoothstep(1.0,4.0, ceil(aEndPos.y) * sin(uTime));
+         // }
+          //}
+          // float test;
+          //  for(float i = 0.0; i <=  12.0 ; i+= 1.0){
+          //   test += abs(1.0 / (100.0 * aEndPos.y));
+          //  }
+          
+        
+           gl_PointSize = 2.5;
+             
+           vParticle = aEndPos;
+        `
+
         // 'vColor = vec3(abs(sin(uTime)) * 0.1 *n, abs(sin(uTime)) * n2, abs(sin(uTime))*n);'
       ],
 
@@ -461,15 +520,18 @@ class Brain3 extends AbstractApplication {
         ` 
         float distanceToCenter = distance(gl_PointCoord, vec2(0.5));
         float pct = 1.0 - smoothstep(0.0, 0.5, distanceToCenter);
-        gl_FragColor = vec4(gl_FragColor.rgb, pct * gl_FragColor.a);
+  
+        vec3 color = gl_FragColor.rgb;
+         
+        gl_FragColor = vec4(color, pct * gl_FragColor.a);
+ 
+         
        `],
 
       fragmentDiffuse: [
         // gl_FrontFacing is a built-in glsl variable that indicates if the current fragment is front-facing
         // if its not front facing, set diffuse color to uBackColor
-
         ' diffuseColor.rgb = uBackColor.xyz;'
-
       ]
     })
 

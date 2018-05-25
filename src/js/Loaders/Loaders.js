@@ -5,7 +5,7 @@ class Loaders {
   constructor (startAnimation) {
     this.BRAIN_MODEL = {}
     this.AMELIA_MODEL = {}
-    this.models = ['brain-parts-big_06.OBJ', 'amelia_standing222.obj']
+    this.models = ['brain-parts-big_07.OBJ', 'amelia_standingv2.obj']
     this.loadingManager = new THREE.LoadingManager()
     this.startAnimation = startAnimation
     this.loadingManager.onLoad = this.handlerLoad.bind(this)

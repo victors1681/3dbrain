@@ -6,12 +6,12 @@ class AbstractApplication {
   constructor () {
     this._camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000)
     this._camera.position.z = 500
-    // this.ambienColor = '#E7EBF3'
+     //this.ambienColor = '#E7EBF3'
 
     this._scene = new THREE.Scene()
-    // this._scene.background = new THREE.Color(this.ambienColor) //E7EBF3
+    //this._scene.background = new THREE.Color(this.ambienColor) //E7EBF3
     // this._scene.fog = new THREE.Fog(0xcce0ff, 100, 10000)
-    this._scene.fog = new THREE.Fog(0xC7D0E2, 250, 1300)
+    this._scene.fog = new THREE.Fog(0xC7D0E2, 300, 1300)
 
     this._renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     this._renderer.setPixelRatio(window.devicePixelRatio)
