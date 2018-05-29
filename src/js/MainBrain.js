@@ -74,7 +74,6 @@ class MainBrain extends AbstractApplication {
     this.endPointsCollections = THREE.BufferGeometryUtils.mergeBufferGeometries(this.brainBufferGeometries)
     console.log('Unique Geometry', this.endPointsCollections)
 
-    this.memories = memories
     console.log('MEMORIES OBJECT', this.memories)
   }
 
@@ -126,8 +125,8 @@ class MainBrain extends AbstractApplication {
     this.gui = new GUI(this)
     this.addBrain()
 
-    this.glow = new BubbleAnimation()
-    this.glow.initGlow(this.scene, this.camera, this.memories, 'analitic')
+    this.bubbleAnimation = new BubbleAnimation(this)
+    this.bubbleAnimation.initAnimation(this.scene, this.camera, this.memories, 'episodic')
 
     // Set Background
     this.scene.background = this.loaders.assets.get('sky')
@@ -143,7 +142,7 @@ class MainBrain extends AbstractApplication {
     this.deltaTime += this.clock.getDelta()
 
     this.particlesSystem.update(this.deltaTime)
-    this.glow.update(this.camera, this.deltaTime)
+    this.bubbleAnimation.update(this.camera, this.deltaTime)
 
     this._stats.update()
     requestAnimationFrame(this.animate.bind(this))

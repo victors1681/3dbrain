@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import * as dat from 'three/examples/js/libs/dat.gui.min'
-import {Power0, TweenMax} from 'gsap'
+import {Power1, Back, TweenMax} from 'gsap'
 
 class GUI {
   constructor (props) {
@@ -9,7 +9,6 @@ class GUI {
 
   initGui (props) {
     const _mainBrain = props
-    console.log('MAIN', _mainBrain)
     this.controls = new function () {
       this.rotationSpeed = 0.5
 
@@ -58,9 +57,9 @@ class GUI {
       const memory = ['semantic', 'episodic', 'analitic', 'process', 'afective']
 
       console.log('vall', Math.floor(val))
-      const obj = this.scene.getObjectByName('memory')
-      this.scene.remove(obj)
-      _mainBrain.glow.initGlow(this.scene, this.camera, _mainBrain.memories, memory[ Math.floor(val)])
+      const obj = _mainBrain.scene.getObjectByName('memory')
+      _mainBrain.scene.remove(obj)
+      _mainBrain.glow.initGlow(_mainBrain.scene, _mainBrain.camera, _mainBrain.memories, memory[ Math.floor(val) ])
     })
 
     gui.addColor(this.controls, 'particleGlow').onChange((e) => _mainBrain.material.uniforms.uBackColor.value = new THREE.Color(e))
@@ -75,37 +74,21 @@ class GUI {
     })
 
     gui.add(this.controls, 'showBubbles').onChange((val) => {
-      if (val) {
-        const progress = { p: 0.0 }
-        TweenMax.fromTo(progress, 2.0, {p: 0.0}, {p: 2.0,
-          ease: Power0.easeIn,
-          onUpdate: (value) => {
-            _mainBrain.rotationMaterial.uniforms.uProgress.value = progress.p
-          }
-        })
-      } else {
-        const progress = { p: 2.0 }
-        TweenMax.fromTo(progress, 2.0, {p: 2.0}, {p: 0.0,
-          ease: Power0.easeIn,
-          onUpdate: (value) => {
-            _mainBrain.rotationMaterial.uniforms.uProgress.value = progress.p
-          }
-        })
-      }
+      _mainBrain.bubbleAnimation.animate(val)
     })
 
     gui.add(this.controls, 'transitioning').onChange((e) => {
       if (e) {
         const progress = { p: 0.0 }
-        TweenMax.fromTo(progress, 1.5, {p: 0.0}, { p: 1.5,
-          ease: Power0.easeIn,
+        TweenMax.fromTo(progress, 2.0, {p: 0.0}, { p: 1.5,
+          ease: Power1.easeIn,
           onUpdate: (value) => {
             _mainBrain.particlesSystem.updateTransitioning(progress.p)
           }})
       } else {
         const progress = { p: 1.0 }
-        TweenMax.fromTo(progress, 1.5, {p: 1.5}, { p: 0.0,
-          ease: Power0.easeIn,
+        TweenMax.fromTo(progress, 2.0, {p: 1.0}, { p: 0.5,
+          ease: Power1.easeIn,
           onUpdate: (value) => {
             _mainBrain.particlesSystem.updateTransitioning(progress.p)
           }})

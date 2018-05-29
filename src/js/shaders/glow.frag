@@ -1,6 +1,8 @@
 uniform vec3 glowColor;
 varying float intensity;
 varying float alpha;
+uniform float uFlashingAlpha;
+uniform bool uIsFlashing;
 void main()
 {
 
@@ -15,7 +17,9 @@ void main()
         //gl_FragColor.a = clamp(abs(alpha), 0.0, 1.0);
         gl_FragColor = vec4(glow, pct * gl_FragColor.a);
 
-
+        if(uIsFlashing){
+             gl_FragColor = vec4(glow, pct * gl_FragColor.a * uFlashingAlpha);
+        }
         // gl_FragColor = vec4( glow, 1.0);
 
 }
