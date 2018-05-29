@@ -5,7 +5,9 @@ class Loaders {
   constructor (startAnimation) {
     this.BRAIN_MODEL = {}
     this.AMELIA_MODEL = {}
-    this.models = ['brain-parts-big_07.OBJ', 'amelia_standingv2.obj']
+    this.spark = {}
+    this.assets = new Map()
+    this.models = ['brain-parts-big_08.OBJ', 'amelia_standingv2.obj']
     this.loadingManager = new THREE.LoadingManager()
     this.startAnimation = startAnimation
     this.loadingManager.onLoad = this.handlerLoad.bind(this)
@@ -14,6 +16,8 @@ class Loaders {
     this.loadingManager.onStart = this.handlerStart
     this.setModel = this.setModel.bind(this)
     this.loadOBJs()
+    this.loadTextures()
+    this.loadSceneBackground()
   }
 
   handlerStart () {
@@ -48,6 +52,29 @@ class Loaders {
       loader.load(`static/models/${m}`, (model) => {
         this.setModel(model, i)
       })
+    })
+  }
+
+  loadTextures () {
+    let loader = new THREE.TextureLoader(this.loadingManager)
+    loader.load(`static/textures/spark1.png`, (t) => {
+      this.spark = t
+    })
+  }
+
+  loadSceneBackground () {
+    const assets = this.assets
+    const cubeTextureLoader = new THREE.CubeTextureLoader(this.loadingManager)
+    const path = 'static/textures/sky/'
+    const format = '.png'
+    const urls = [
+      path + 'px' + format, path + 'nx' + format,
+      path + 'py' + format, path + 'ny' + format,
+      path + 'pz' + format, path + 'nz' + format
+    ]
+
+    cubeTextureLoader.load(urls, function (textureCube) {
+      assets.set('sky', textureCube)
     })
   }
 }

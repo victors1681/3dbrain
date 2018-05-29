@@ -66,8 +66,10 @@
     "glslify-hex": "^2.0.1",
     "gsap": "^1.20.4",
     "i": "^0.3.6",
+    "lodash": "^4.17.10",
+    "postprocessing": "^4.5.0",
     "three": "^0.91.0",
-    "three-bas": "^2.6.0",
+    "three-bas": "^2.7.0",
     "webvr-polyfill": "^0.10.2",
     "webvr-ui": "^0.10.0"
   },

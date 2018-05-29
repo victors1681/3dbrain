@@ -1,0 +1,254 @@
+import * as BAS from 'three-bas'
+import * as THREE from 'three'
+import Chuncks from './chunks'
+
+class ParticleSystem {
+  constructor (brainParticles, memories) {
+    this.chuncks = new Chuncks()
+    this.brainParticles = brainParticles
+    this.memories = memories
+
+    this.particlesStartColor = new THREE.Color(0xffffff)
+    this.particlesColor = new THREE.Color(0xffffff)
+    this.particles = this.init()
+  }
+
+  getLoadingPoints () {
+    var geometry = new THREE.RingBufferGeometry(100, 40, 150, 150, 20)
+    return geometry.attributes.position.array
+  }
+
+  init () {
+    var duration = 1.0
+    var maxPointDelay = 0.3
+
+    var brainPoints = this.brainParticles.attributes.position.array
+    // var ameliaPoints = this.endPointsCollectionsAmelia.attributes.position.array
+
+    const count = brainPoints.length
+    const me = this
+
+    const geometry = new BAS.PointBufferGeometry(count)
+
+    const loadingCircle = this.getLoadingPoints()
+    geometry.createAttribute('aStartLoading', 3, (data, index, num) => {
+      const startVec3 = new THREE.Vector3()
+      startVec3.x = loadingCircle[index * 3 + 0] || 0
+      startVec3.y = loadingCircle[index * 3 + 1] || 0
+      startVec3.z = THREE.Math.randFloat(-80.0, 80.0) // loadingCircle[index * 3 + 2] || 0
+      startVec3.toArray(data)
+    })
+
+    geometry.createAttribute('aEpisodic', 3, (data, index) => {
+      const v = new THREE.Vector3()
+      v.x = this.memories.episodic[0].attributes.position.array[index * 3 + 0] || 0
+      v.y = this.memories.episodic[0].attributes.position.array[index * 3 + 1] || 0
+      v.z = this.memories.episodic[0].attributes.position.array[index * 3 + 2] || 0
+      v.toArray(data)
+    })
+
+    var color = new THREE.Color()
+    this.aStartColor = geometry.createAttribute('aStartColor', 3, (data, index, num) => {
+      const r = me.particlesStartColor.r
+      const g = me.particlesStartColor.g
+      const b = me.particlesStartColor.b
+
+      color.setRGB(r, g, b)
+      color.toArray(data)
+    })
+
+    geometry.createAttribute('scale', 1, function (data) {
+      data[0] = THREE.Math.randFloat(200.0, 400.0)
+    })
+
+    this.aEndColor = geometry.createAttribute('aEndColor', 3, (data, index, num) => {
+      const r = me.particlesColor.r
+      const g = me.particlesColor.g
+      const b = me.particlesColor.b
+
+      color.setRGB(r, g, b)
+      color.toArray(data)
+    })
+
+    geometry.createAttribute('aEndPos', 3, (data, index, num) => {
+      var startVec3 = new THREE.Vector3()
+      // var randSphere = ameliaPoints[index]
+      startVec3.x = brainPoints[index * 3 + 0] || 0
+      startVec3.y = brainPoints[index * 3 + 1] || 0
+      startVec3.z = brainPoints[index * 3 + 2] || 0
+      startVec3.toArray(data)
+    })
+
+    this.totalDuration = duration + maxPointDelay
+
+    geometry.createAttribute('aDelayDuration', 3, (data, index, num) => {
+      data[0] = Math.random() * maxPointDelay
+      data[1] = duration
+    })
+
+    const material = new BAS.PointsAnimationMaterial({
+      // transparent: true,
+      // blending: THREE.AdditiveBlending,
+      vertexColors: THREE.VertexColors,
+      deptWrite: false,
+
+      blending: THREE.AdditiveBlending,
+      depthTest: false,
+      transparent: true,
+      uniforms: {
+        uTime: {type: 'f', value: 0},
+        uProgress: {type: 'float', value: 0.0},
+        uAngle: {type: 'f', value: 1.0},
+        uPointSizeEffect: {type: 'f', value: 0.1},
+        uColor: {value: new THREE.Color(0xffffff)}
+      },
+      defines: {
+        USE_SIZEATTENUATION: true
+      },
+      uniformValues: {
+        size: 2.9,
+        scale: 400
+      },
+      vertexFunctions: [
+        BAS.ShaderChunk['ease_expo_in_out'],
+        BAS.ShaderChunk['quaternion_rotation'],
+        this.chuncks.rotate,
+        this.chuncks.random,
+        this.chuncks.noise
+      ],
+
+      vertexParameters: [
+        'uniform float uTime;',
+        'uniform bool test;',
+        'uniform float uPointSizeEffect;',
+        'uniform float uProgress;',
+        'uniform float uAngle;',
+        'attribute vec2 aDelayDuration;',
+        'attribute vec3 aStartLoading;',
+        'attribute vec3 aStartPos;',
+        'attribute vec3 aEndPos;',
+        'attribute vec3 aStartColor;',
+        'attribute vec3 aEndColor;',
+        'attribute float aStartOpacity;',
+        'attribute float aEndOpacity;',
+        'attribute vec3 aEpisodic;'
+
+      ],
+      varyingParameters: [
+        `
+          varying vec3 vParticle;
+          varying vec3 vEpisodic;
+          varying vec3 vEndPos;
+          `
+      ],
+      // this chunk is injected 1st thing in the vertex shader main() function
+      // variables declared here are available in all subsequent chunks
+      vertexInit: [
+        // calculate a progress value between 0.0 and 1.0 based on the vertex delay and duration, and the uniform time
+        'float tProgress = clamp(uProgress - aDelayDuration.x, 0.0, aDelayDuration.y) / aDelayDuration.y;',
+        // // ease the progress using one of the available easing functions
+        'tProgress = easeExpoInOut(tProgress);'
+        // 'tProgress = uProgress;'
+        // 'if(test){ tProgress = 0.0; } else { tProgress = 1.0 ;}'
+      ],
+      // this chunk is injected before all default position calculations (including the model matrix multiplication)
+      vertexPosition: [`
+        // linearly interpolate between the start and end position based on tProgress
+        // and add the value as a delta
+        //transformed += mix(aStartPos, aEndPos, tProgress);
+
+        if(tProgress < 0.5){ 
+         vec2 pos = vec2(aStartLoading.xy*5.0);
+
+        // Use the noise function
+        float n = noise(aStartLoading.yx);
+     vec2 test;
+      if(mod(aStartLoading.x, 2.0) < 0.2){
+            test = rotate2D(aStartLoading.xy, PI*2.0 * uTime * uAngle * n);
+             transformed += vec3(test.x, test.y, aStartLoading.z * n);
+        }else if (mod(aStartLoading.x, 2.0) >= 0.2 && mod(aStartLoading.x, 2.0) < 1.5){
+            test = rotate2D(aStartLoading.xy + n, PI*2.0 * uTime * 0.05 * uAngle * n);
+            transformed += vec3(test.x, test.y, aStartLoading.z * n);
+        }else {
+            test = rotate2D(aStartLoading.xy + n, PI*2.0 * uTime * 0.01 * uAngle * n);
+            transformed += vec3(test.x, test.y , aStartLoading.z * n);
+        }
+        }else{
+        
+        if(aEpisodic.x == aEndPos.x){
+            transformed += vec3(-10, aEpisodic.y, 0.0);
+        }
+        //Brain Particles
+           transformed += mix(aStartLoading, aEndPos, tProgress);
+        }   
+        `
+      ],
+      // this chunk is injected before all default color calculations
+      vertexColor: [
+        // linearly interpolate between the start and end position based on tProgress
+        // and add the value as a delta
+        `
+         vColor = mix(aStartColor, aEndColor, tProgress);
+         vParticle = aEndPos;
+         
+          vEpisodic = aEpisodic;
+        vEndPos = aEndPos;
+        `
+      ],
+
+      fragmentParameters: [
+
+        'uniform float uTime;',
+        'uniform vec3 uColor;'
+      ],
+      // convert the point (default is square) to circle shape, make sure transparent of material is true
+      // you can create more shapes: https://thebookofshaders.com/07/
+      fragmentShape: [
+        `
+        float distanceToCenter = distance(gl_PointCoord, vec2(0.5));
+        float pct = 1.0 - smoothstep(0.0, 0.5, distanceToCenter);
+        vec3 color = vec3(1.0) * gl_FragColor.rgb;
+        gl_FragColor = vec4(color, pct * gl_FragColor.a);
+       `],
+
+      fragmentDiffuse: [
+        // gl_FrontFacing is a built-in glsl variable that indicates if the current fragment is front-facing
+        // if its not front facing, set diffuse color to uBackColor
+        `
+        //diffuseColor.rgb = vBackColor.xyz;
+        
+       // diffuseColor.rgb = vec3(0.0, 0.0, 1.0);
+       
+       // if( vEndPos.x > 50.0 && vEndPos.y > 50.0 ){
+       //   diffuseColor.rgb = vec3(0.0, 0.0, 1.0);
+       //    diffuseColor.a = smoothstep(0.0, 1.0, sin(vEndPos.x*10.0 + uTime)*60.0 );
+       // }
+        `
+      ]
+    })
+
+    const system = new THREE.Points(geometry, material)
+    system.castShadow = true
+    //
+    // // depth material is used for directional & spot light shadows
+    system.customDepthMaterial = BAS.Utils.createDepthAnimationMaterial(material)
+    // // distance material is used for point light shadows
+    system.customDistanceMaterial = BAS.Utils.createDistanceAnimationMaterial(material)
+
+    return system
+  }
+
+  update (deltaTime) {
+    this.particles.customDepthMaterial.uniforms['uTime'].value = Math.sin(deltaTime)
+    this.particles.customDistanceMaterial.uniforms['uTime'].value = Math.sin(deltaTime)
+    this.particles.material.uniforms['uTime'].value = deltaTime
+  }
+
+  updateTransitioning (val) {
+    this.particles.material.uniforms['uProgress'].value = val
+    this.particles.customDepthMaterial.uniforms['uProgress'].value = val
+    this.particles.customDistanceMaterial.uniforms['uProgress'].value = val
+  }
+}
+
+export default ParticleSystem
