@@ -76,7 +76,7 @@ const Rotation = (scene) => {
       uOscTime: {value: 0},
       uDuration: {value: 1},
       uProgress: {vaue: 0.0},
-      uViewVector: { value: THREE.Vector3(0.0, 0.0, 0.0)}
+      uViewVector: { value: THREE.Vector3(0.0, 0.0, 0.0) }
     },
     vertexFunctions: [
       BAS.ShaderChunk['quaternion_rotation']

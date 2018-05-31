@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import * as dat from 'three/examples/js/libs/dat.gui.min'
+import testPayload from '../data/testPayload'
 import {Power1, Back, TweenMax} from 'gsap'
 
 class GUI {
@@ -50,16 +51,12 @@ class GUI {
     })
 
     gui.add(this.controls, 'uBurbleUp', 0.0, 1.0).onChange((val) => {
-      _mainBrain.glow.updateBurbleUp(val)
+      _mainBrain.bubblesAnimation.updateBurbleUp(val)
     })
 
     gui.add(this.controls, 'memory', 0, 4).onChange((val) => {
-      const memory = ['semantic', 'episodic', 'analitic', 'process', 'afective']
-
-      console.log('vall', Math.floor(val))
-      const obj = _mainBrain.scene.getObjectByName('memory')
-      _mainBrain.scene.remove(obj)
-      _mainBrain.glow.initGlow(_mainBrain.scene, _mainBrain.camera, _mainBrain.memories, memory[ Math.floor(val) ])
+      // _mainBrain.bubblesAnimation.initAnimation(_mainBrain.bubblesAnimation.memorySelected[ Math.floor(val) ])
+      _mainBrain.bubblesAnimation.updateSubSystem(testPayload)
     })
 
     gui.addColor(this.controls, 'particleGlow').onChange((e) => _mainBrain.material.uniforms.uBackColor.value = new THREE.Color(e))
@@ -70,11 +67,11 @@ class GUI {
     })
 
     gui.add(this.controls, 'burbleProgress', 0.0, 1.0).onChange((val) => {
-      _mainBrain.glow.updateBurbleUp(val)
+      _mainBrain.bubblesAnimation.updateBurbleUp(val)
     })
 
     gui.add(this.controls, 'showBubbles').onChange((val) => {
-      _mainBrain.bubbleAnimation.animate(val)
+      _mainBrain.bubblesAnimation.animate(val)
     })
 
     gui.add(this.controls, 'transitioning').onChange((e) => {

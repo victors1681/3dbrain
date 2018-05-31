@@ -2,8 +2,9 @@ import * as THREE from 'three'
 import 'three/examples/js/BufferGeometryUtils'
 import Loaders from './Loaders/Loaders'
 import AbstractApplication from 'views/AbstractApplication'
-import BubbleAnimation from './services/bubbleAnimation'
+import BubblesAnimation from './services/bubblesAnimation'
 import GUI from './services/gui'
+import Font from './services/font'
 import ParticleSystem from './services/particlesSystem'
 import memories from './data/memories.json'
 
@@ -56,7 +57,6 @@ class MainBrain extends AbstractApplication {
   addBrain () {
     console.error('Brain', this.loaders.BRAIN_MODEL)
     this.brainBufferGeometries = []
-    this.uniqueBrain = new THREE.BufferGeometry()
 
     this.loaders.BRAIN_MODEL.traverse((child) => {
       if (child instanceof THREE.LineSegments) {
@@ -124,14 +124,14 @@ class MainBrain extends AbstractApplication {
   runAnimation () {
     this.gui = new GUI(this)
     this.addBrain()
-
-    this.bubbleAnimation = new BubbleAnimation(this)
-    this.bubbleAnimation.initAnimation(this.scene, this.camera, this.memories, 'episodic')
+    this.addParticlesSystem()
+    this.font = new Font(this.loaders, this.scene)
+    this.bubblesAnimation = new BubblesAnimation(this)
+    this.bubblesAnimation.initAnimation('episodic')
 
     // Set Background
     this.scene.background = this.loaders.assets.get('sky')
 
-    this.addParticlesSystem()
     this.animate()
   }
 
@@ -142,11 +142,17 @@ class MainBrain extends AbstractApplication {
     this.deltaTime += this.clock.getDelta()
 
     this.particlesSystem.update(this.deltaTime)
-    this.bubbleAnimation.update(this.camera, this.deltaTime)
+    this.bubblesAnimation.update(this.camera, this.deltaTime)
 
     this._stats.update()
     requestAnimationFrame(this.animate.bind(this))
     this._renderer.render(this._scene, this._camera)
+    this.font.facingToCamera(this.camera)
+  }
+  onMouseMove (event) {
+    const y = window.innerHeight - event.clientY
+    const x = window.innerHeight - event.clientX
+    this.bubblesAnimation.updateMouse(new THREE.Vector2(x, y))
   }
   addParticlesSystem () {
     this.particlesSystem = new ParticleSystem(this.endPointsCollections, this.memories)

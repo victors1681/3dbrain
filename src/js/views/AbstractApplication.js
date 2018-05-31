@@ -40,10 +40,11 @@ class AbstractApplication {
     this._orbitControls.enableDamping = true
     this._orbitControls.dampingFactor = 0.25
     this._orbitControls.enableZoom = true
-    this._orbitControls.minDistance = 0
-    this._orbitControls.maxDistance = 1000
+    this._orbitControls.minDistance = 100
+    this._orbitControls.maxDistance = 700
 
     window.addEventListener('resize', this.onWindowResize.bind(this), false)
+    window.addEventListener('mousemove', this.onMouseMove.bind(this), false)
   }
 
   get renderer () {
@@ -68,6 +69,7 @@ class AbstractApplication {
     return stats
   }
 
+  onMouseMove (e) {}
   onWindowResize () {
     this._camera.aspect = window.innerWidth / window.innerHeight
     this._camera.updateProjectionMatrix()

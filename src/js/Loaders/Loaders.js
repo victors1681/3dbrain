@@ -6,6 +6,7 @@ class Loaders {
     this.BRAIN_MODEL = {}
     this.AMELIA_MODEL = {}
     this.spark = {}
+    this.FONT = {}
     this.assets = new Map()
     this.models = ['brain-parts-big_08.OBJ', 'amelia_standingv2.obj']
     this.loadingManager = new THREE.LoadingManager()
@@ -17,6 +18,7 @@ class Loaders {
     this.setModel = this.setModel.bind(this)
     this.loadOBJs()
     this.loadTextures()
+    this.loadFont()
     this.loadSceneBackground()
   }
 
@@ -75,6 +77,13 @@ class Loaders {
 
     cubeTextureLoader.load(urls, function (textureCube) {
       assets.set('sky', textureCube)
+    })
+  }
+
+  loadFont () {
+    const fontLoader = new THREE.FontLoader(this.loadingManager)
+    fontLoader.load(`static/fonts/Roboto_Regular.json`, (font) => {
+      this.FONT = font
     })
   }
 }

@@ -1,0 +1,154 @@
+{
+  "messageId": "d542ac85-88c9-4d49-a5cb-08514cb67ba0",
+  "conversationId": "LDWNSLVXAAIAA-1",
+  "inResponseToMessageId": "76186dad-cba3-423f-ae27-35a796028c24",
+  "sourceSessionId": "b9e1fdeb-4417-463f-a9f2-4f2253d9e38b",
+  "sourceClass": "ContextDialogManagementService",
+  "messageText": null,
+  "attributes": {
+    "inboundText": "hello",
+    "preProcessors": [
+      {
+        "time": "21.31 μs",
+        "processor": "SetCustomConversationAttributesProcessor"
+      },
+      {
+        "time": "50.09 μs",
+        "processor": "TranslationProcessor"
+      },
+      {
+        "time": "723.8 ms",
+        "processor": "InboundNlpProcessor"
+      },
+      {
+        "time": "48.58 ms",
+        "processor": "CorefProcessor"
+      },
+      {
+        "time": "322.6 ms",
+        "processor": "GoalAndEntityProcessor"
+      },
+      {
+        "time": "221.3 ms",
+        "processor": "UserAffectUpdateService"
+      },
+      {
+        "time": "9.804 ms",
+        "processor": "AnalyticsProcessor"
+      },
+      {
+        "time": "29.28 μs",
+        "processor": "BpnLearningProcessor"
+      }
+    ],
+    "winningSubsystem": "AIML",
+    "initialContext": {
+      "dialogState": "ACTIVE",
+      "contextId": "763decf0-31b2-4e3c-b44b-531a294c6fcf",
+      "preferredResponder": null
+    },
+    "subsystemResults": [
+      {
+        "result": "OK",
+        "subsystem": "Semnet",
+        "responses": [],
+        "time": "13.63 ms"
+      },
+      {
+        "result": "NONE",
+        "subsystem": "Bpn",
+        "responses": [],
+        "time": "18.43 ms"
+      },
+      {
+        "result": "RESPONDED",
+        "subsystem": "AIML",
+        "responses": [
+          "Hi victor, How can I help you?."
+        ],
+        "time": "31.98 ms"
+      },
+      {
+        "result": "NONE",
+        "subsystem": "LogicNet",
+        "responses": [],
+        "time": "17.74 ms"
+      },
+      {
+        "result": "RESPONDED",
+        "subsystem": "DontKnow",
+        "responses": [
+          null
+        ],
+        "time": "15.94 ms"
+      },
+      {
+        "result": "NONE",
+        "subsystem": "FAQ",
+        "responses": [],
+        "time": "43.49 ms"
+      },
+      {
+        "result": "NONE",
+        "subsystem": "EQA",
+        "responses": [],
+        "time": "19.72 ms"
+      },
+      {
+        "result": "NONE",
+        "subsystem": "EpisodicMemory",
+        "responses": [],
+        "time": "706.8 ms"
+      },
+      {
+        "result": "NONE",
+        "subsystem": "IntentFAQ",
+        "responses": [],
+        "time": "55.04 ms"
+      },
+      {
+        "result": "NONE",
+        "subsystem": "Affective",
+        "responses": [],
+        "time": "24.98 ms"
+      },
+      {
+        "result": "NONE",
+        "subsystem": "Escalate",
+        "responses": [],
+        "time": "10.61 ms"
+      },
+      {
+        "result": "RESPONDED",
+        "subsystem": "SocialTalk",
+        "responses": [
+          null
+        ],
+        "time": "22.22 ms"
+      },
+      {
+        "result": "NONE",
+        "subsystem": "SemnetDoc",
+        "responses": [],
+        "time": "13.79 ms"
+      },
+      {
+        "result": "NONE",
+        "subsystem": "AcknowledgeDefault",
+        "responses": [],
+        "time": "24.76 ms"
+      }
+    ],
+    "finalContext": {
+      "dialogState": "ACTIVE",
+      "contextId": "763decf0-31b2-4e3c-b44b-531a294c6fcf",
+      "preferredResponder": null
+    }
+  },
+  "fromUserDisplayName": "Amelia",
+  "secureResponse": false,
+  "id": "d542ac85-88c9-4d49-a5cb-08514cb67ba0",
+  "messageType": "OutboundArbitrationResultsMessage",
+  "translated": false,
+  "voice": "VW Julie"
+}
