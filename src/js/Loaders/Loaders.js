@@ -1,91 +1,90 @@
-import * as THREE from 'three'
-import 'three/examples/js/loaders/OBJLoader'
+import * as THREE from 'three';
+import 'three/examples/js/loaders/OBJLoader';
 
 class Loaders {
-  constructor (startAnimation) {
-    this.BRAIN_MODEL = {}
-    this.AMELIA_MODEL = {}
-    this.spark = {}
-    this.FONT = {}
-    this.assets = new Map()
-    this.models = ['brain-parts-big_08.OBJ', 'amelia_standingv2.obj']
-    this.loadingManager = new THREE.LoadingManager()
-    this.startAnimation = startAnimation
-    this.loadingManager.onLoad = this.handlerLoad.bind(this)
-    this.loadingManager.onProgress = this.handlerProgress
-    this.loadingManager.onError = this.handlerError
-    this.loadingManager.onStart = this.handlerStart
-    this.setModel = this.setModel.bind(this)
-    this.loadOBJs()
-    this.loadTextures()
-    this.loadFont()
-    this.loadSceneBackground()
-  }
-
-  handlerStart () {
-    console.log('Starting')
-  }
-  handlerProgress (url, itemsLoaded, itemsTotal) {
-    console.log('Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.')
-  }
-  handlerLoad () {
-    console.log('loading Complete!')
-    this.startAnimation()
-  }
-  handlerError (url) {
-    console.log('There was an error loading ' + url)
-  }
-  setModel (model, i) {
-    switch (i) {
-      case 0:
-        this.BRAIN_MODEL = model
-        break
-      case 1:
-        this.AMELIA_MODEL = model
-        break
-      default:
-        this.BRAIN_MODEL = model
+    constructor(startAnimation) {
+        this.BRAIN_MODEL = {};
+        this.AMELIA_MODEL = {};
+        this.spark = {};
+        this.FONT = {};
+        this.assets = new Map();
+        this.models = ['brain-parts-big_08.OBJ', 'amelia_standingv2.obj'];
+        this.loadingManager = new THREE.LoadingManager();
+        this.startAnimation = startAnimation;
+        this.loadingManager.onLoad = this.handlerLoad.bind(this);
+        this.loadingManager.onProgress = this.handlerProgress;
+        this.loadingManager.onError = this.handlerError;
+        this.loadingManager.onStart = this.handlerStart;
+        this.setModel = this.setModel.bind(this);
+        this.loadOBJs();
+        this.loadTextures();
+        this.loadFont();
+        this.loadSceneBackground();
     }
-  }
 
-  loadOBJs () {
-    let loader = new THREE.OBJLoader(this.loadingManager)
-    this.models.forEach((m, i) => {
-      loader.load(`static/models/${m}`, (model) => {
-        this.setModel(model, i)
-      })
-    })
-  }
+    static handlerStart() {
+        console.log('Starting');
+    }
+    static handlerProgress(url, itemsLoaded, itemsTotal) {
+        console.log(`Loading file: ${url}.\nLoaded ${itemsLoaded} of ${itemsTotal} files.`);
+    }
+    handlerLoad() {
+        console.log('loading Complete!');
+        this.startAnimation();
+    }
+    static handlerError(url) {
+        console.log(`There was an error loading ${url}`);
+    }
+    setModel(model, i) {
+        switch (i) {
+            case 0:
+                this.BRAIN_MODEL = model;
+                break;
+            case 1:
+                this.AMELIA_MODEL = model;
+                break;
+            default:
+                this.BRAIN_MODEL = model;
+        }
+    }
 
-  loadTextures () {
-    let loader = new THREE.TextureLoader(this.loadingManager)
-    loader.load(`static/textures/spark1.png`, (t) => {
-      this.spark = t
-    })
-  }
+    loadOBJs() {
+        const loader = new THREE.OBJLoader(this.loadingManager);
+        this.models.forEach((m, i) => {
+            loader.load(`static/models/${m}`, (model) => {
+                this.setModel(model, i);
+            });
+        });
+    }
 
-  loadSceneBackground () {
-    const assets = this.assets
-    const cubeTextureLoader = new THREE.CubeTextureLoader(this.loadingManager)
-    const path = 'static/textures/sky/'
-    const format = '.png'
-    const urls = [
-      path + 'px' + format, path + 'nx' + format,
-      path + 'py' + format, path + 'ny' + format,
-      path + 'pz' + format, path + 'nz' + format
-    ]
+    loadTextures() {
+        const loader = new THREE.TextureLoader(this.loadingManager);
+        loader.load('static/textures/spark1.png', (t) => {
+            this.spark = t;
+        });
+    }
 
-    cubeTextureLoader.load(urls, function (textureCube) {
-      assets.set('sky', textureCube)
-    })
-  }
+    loadSceneBackground() {
+        const cubeTextureLoader = new THREE.CubeTextureLoader(this.loadingManager);
+        const path = 'static/textures/sky/';
+        const format = '.png';
+        const urls = [
+            `${path}px${format}`, `${path}nx${format}`,
+            `${path}py${format}`, `${path}ny${format}`,
+            `${path}pz${format}`, `${path}nz${format}`,
+        ];
 
-  loadFont () {
-    const fontLoader = new THREE.FontLoader(this.loadingManager)
-    fontLoader.load(`static/fonts/Roboto_Regular.json`, (font) => {
-      this.FONT = font
-    })
-  }
+        cubeTextureLoader.load(urls, (textureCube) => {
+            this.assets.set('sky', textureCube);
+        });
+    }
+
+    loadFont() {
+        const fontLoader = new THREE.FontLoader(this.loadingManager);
+        fontLoader.load('static/fonts/Roboto_Regular.json', (font) => {
+            this.FONT = font;
+        });
+    }
 }
 
-export default Loaders
+export default Loaders;

@@ -1,86 +1,86 @@
-import * as THREE from 'three'
-import 'three/examples/js/controls/OrbitControls'
-import * as Stats from 'three/examples/js/libs/stats.min'
-import { EffectComposer, GlitchPass, BlurPass, RenderPass } from 'postprocessing'
+import * as THREE from 'three';
+import 'three/examples/js/controls/OrbitControls';
+import Stats from 'three/examples/js/libs/stats.min';
+import { EffectComposer, GlitchPass, BlurPass, RenderPass } from 'postprocessing';
 
 class AbstractApplication {
-  constructor () {
-    this._camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000)
-    this._camera.position.z = 500
-    // this.ambienColor = '#E7EBF3'
+    constructor() {
+        this.a_camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+        this.a_camera.position.z = 500;
+        // this.ambienColor = '#E7EBF3'
 
-    this._scene = new THREE.Scene()
-    this._scene.background = new THREE.Color('#C7D0E2')
-    // this._scene.fog = new THREE.Fog(0xcce0ff, 100, 10000)
-    this._scene.fog = new THREE.Fog(0xC7D0E2, 300, 1300)
+        this.a_scene = new THREE.Scene();
+        this.a_scene.background = new THREE.Color('#C7D0E2');
+        // this.a_scene.fog = new THREE.Fog(0xcce0ff, 100, 10000)
+        this.a_scene.fog = new THREE.Fog(0xC7D0E2, 300, 1300);
 
-    this._renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-    this._renderer.setPixelRatio(window.devicePixelRatio)
-    this._renderer.setSize(window.innerWidth, window.innerHeight)
-    this._renderer.sortObjects = false
-    this._renderer.setClearColor(0x00000, 0.0)
+        this.a_renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.a_renderer.setPixelRatio(window.devicePixelRatio);
+        this.a_renderer.setSize(window.innerWidth, window.innerHeight);
+        this.a_renderer.sortObjects = false;
+        this.a_renderer.setClearColor(0x00000, 0.0);
 
-    this._renderer.shadowMap.enabled = true
-    this._renderer.shadowMap.type = THREE.PCFSoftShadowMap
-    this._renderer.gammaInput = true
-    this._renderer.gammaOutput = true
+        this.a_renderer.shadowMap.enabled = true;
+        this.a_renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.a_renderer.gammaInput = true;
+        this.a_renderer.gammaOutput = true;
 
-    this._composer = new EffectComposer(this._renderer)
-    this._composer.addPass(new RenderPass(this._scene, this._camera))
+        this.composer = new EffectComposer(this.a_renderer);
+        this.composer.addPass(new RenderPass(this.a_scene, this.a_camera));
 
-    const pass = new GlitchPass()
-    pass.renderToScreen = true
-    this._composer.addPass(pass)
+        const pass = new GlitchPass();
+        pass.renderToScreen = true;
+        this.composer.addPass(pass);
 
-    document.body.appendChild(this._renderer.domElement)
+        document.body.appendChild(this.a_renderer.domElement);
 
-    this._stats = this.initStats(document.body)
+        this.stats = AbstractApplication.initStats(document.body);
 
-    this._orbitControls = new THREE.OrbitControls(this._camera, this._renderer.domElement)
-    this._orbitControls.enableDamping = true
-    this._orbitControls.dampingFactor = 0.25
-    this._orbitControls.enableZoom = true
-    this._orbitControls.minDistance = 100
-    this._orbitControls.maxDistance = 700
+        this.orbitControls = new THREE.OrbitControls(this.a_camera, this.a_renderer.domElement);
+        this.orbitControls.enableDamping = true;
+        this.orbitControls.dampingFactor = 0.25;
+        this.orbitControls.enableZoom = true;
+        this.orbitControls.minDistance = 100;
+        this.orbitControls.maxDistance = 700;
 
-    window.addEventListener('resize', this.onWindowResize.bind(this), false)
-    window.addEventListener('mousemove', this.onMouseMove.bind(this), false)
-  }
+        window.addEventListener('resize', this.onWindowResize.bind(this), false);
+        window.addEventListener('mousemove', this.onMouseMove.bind(this), false);
+    }
 
-  get renderer () {
-    return this._renderer
-  }
+    get renderer() {
+        return this.a_renderer;
+    }
 
-  get camera () {
-    return this._camera
-  }
+    get camera() {
+        return this.a_camera;
+    }
 
-  get scene () {
-    return this._scene
-  }
+    get scene() {
+        return this.a_scene;
+    }
 
-  initStats (render) {
-    const stats = new Stats()
-    stats.setMode(0)
-    stats.domElement.style.position = 'absolute'
-    stats.domElement.style.left = '0px'
-    stats.domElement.style.tip = '0px'
-    render.appendChild(stats.domElement)
-    return stats
-  }
+    static initStats(render) {
+        const stats = new Stats();
+        stats.setMode(0);
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '0px';
+        stats.domElement.style.tip = '0px';
+        render.appendChild(stats.domElement);
+        return stats;
+    }
 
-  onMouseMove (e) {}
-  onWindowResize () {
-    this._camera.aspect = window.innerWidth / window.innerHeight
-    this._camera.updateProjectionMatrix()
+    static onMouseMove(e) {}
+    onWindowResize() {
+        this.a_camera.aspect = window.innerWidth / window.innerHeight;
+        this.a_camera.updateProjectionMatrix();
 
-    this._renderer.setSize(window.innerWidth, window.innerHeight)
-  }
+        this.a_renderer.setSize(window.innerWidth, window.innerHeight);
+    }
 
-  animate (timestamp) {
-    requestAnimationFrame(this.animate.bind(this))
-    this._renderer.render(this._scene, this._camera)
-  }
+    animate(timestamp) {
+        requestAnimationFrame(this.animate.bind(this));
+        this.a_renderer.render(this.a_scene, this.a_camera);
+    }
 }
 
-export default AbstractApplication
+export default AbstractApplication;
