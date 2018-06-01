@@ -40,8 +40,14 @@ class AbstractApplication {
         this.orbitControls.enableDamping = true;
         this.orbitControls.dampingFactor = 0.25;
         this.orbitControls.enableZoom = true;
-        this.orbitControls.minDistance = 100;
+        this.orbitControls.zoomSpeed = 0.1;
+        this.orbitControls.panSpeed = 0.1;
+        this.orbitControls.minDistance = 500;
         this.orbitControls.maxDistance = 700;
+        this.orbitControls.autoRotate = true;
+        this.orbitControls.autoRotateSpeed = 1.0;
+        this.orbitControls.rotateSpeed = 0.1;
+        this.orbitControls.screenSpacePanning = true;
 
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
         window.addEventListener('mousemove', this.onMouseMove.bind(this), false);

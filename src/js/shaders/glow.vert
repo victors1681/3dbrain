@@ -34,10 +34,10 @@ void main()
 
     alpha = step(0.5, abs(m));
     if(m > 0.5 && m < 0.7){
-         gl_PointSize = 0.5 * size;
+         gl_PointSize = 0.9 * size;
     }
     if(m > 0.8){
-           gl_PointSize = 0.5 * size;
+           gl_PointSize = 0.9 * size;
         }
 
 
@@ -66,7 +66,7 @@ void main()
 
     if(bubbles.w == 2.0) {
            alpha = clamp(abs(sin(uTime - bubbles.y)), 0.3, 1.0);
-           gl_PointSize = size + 85.0;
+           gl_PointSize = size + 110.0;
 
            gl_PointSize = clamp(uBubblesUp, 1.0, 0.0) * gl_PointSize ;
            float normalized = clamp(uBubblesUp, 0.0, 2.0)* 2.0;

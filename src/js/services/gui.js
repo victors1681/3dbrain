@@ -15,7 +15,7 @@ class GUI {
 
             this.floor = 0xDDE3E9;
             this.transitioning = false;
-            this.autoRotate = false;
+            this.autoRotate = true;
             this.lightIntensity = 1.45;
             this.lightDistance = 175;
 
