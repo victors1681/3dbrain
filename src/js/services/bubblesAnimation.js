@@ -9,7 +9,7 @@ class BubblesAnimation {
     constructor(mainBrain) {
         this.mainBrain = mainBrain;
         this.isFlashing = false;
-        this.memorySelected = ['analytic', 'episodic', 'process', 'semantic', 'affective'];
+        this.memorySelected = mainBrain.memorySelected;
     }
 
     /**
@@ -54,10 +54,26 @@ class BubblesAnimation {
         return bubbleList;
     }
 
-    initAnimation(selector) {
+    getLoadingPosition(memories) {
+        const loadingPosition = [];
+
+        this.memorySelected.forEach((m) => {
+            const memory = memories[m][0].attributes.position.array;
+            const randomPos = THREE.Math.randInt(0, (memory.length / 3) - 4);
+
+            const x = memory[(randomPos * 3) + 0] || 0;
+            const y = memory[(randomPos * 3) + 1] || 0;
+            const z = memory[(randomPos * 3) + 2] || 0;
+
+            loadingPosition.push(x, y, z, 1.0);
+        });
+        return loadingPosition;
+    }
+
+    initAnimation() {
         const { scene, camera, memories } = this.mainBrain;
 
-        const particles = memories[selector][0].attributes.position.array.length;
+        const particles = 100000;
         const geometry = new THREE.BufferGeometry();
         const sizes = [];
         const positions = [];
@@ -66,6 +82,8 @@ class BubblesAnimation {
         const duration = 2.5;
         const maxPointDelay = 1.5;
         let bubbles = [];
+        let loadingPosition = [];
+        loadingPosition = this.getLoadingPosition(memories);
 
         bubbles = this.getBubblesSelected(bubbles);
 
@@ -85,10 +103,13 @@ class BubblesAnimation {
                 bubbles.push(x, y, z, 0.0);
             }
 
-            delay[(i * 3) + 0] = THREE.Math.randFloat(0.5, maxPointDelay);
-            delay[(i * 3) + 1] = duration;
+            delay[(i * 2) + 0] = THREE.Math.randFloat(0.5, maxPointDelay);
+            delay[(i * 2) + 1] = duration;
+
+            loadingPosition.push(THREE.Math.randInt(100, 250), THREE.Math.randInt(100, 250), 0, THREE.Math.randInt(100, 250), 0.0);
         }
 
+        geometry.addAttribute('aLoadingAnimation', new THREE.Float32Attribute(loadingPosition, 4));
         geometry.addAttribute('aDelayDuration', new THREE.Float32Attribute(delay, 2));
         geometry.addAttribute('bubbles', new THREE.Float32Attribute(bubbles, 4));
         geometry.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -106,6 +127,7 @@ class BubblesAnimation {
                         uSlowTime: { type: 'f', value: 0.0 },
                         uBubblesUp: { type: 'f', value: 0.0 },
                         uIsFlashing: { type: 'b', value: false },
+                        uLoading: { type: 'b', value: false },
                         uFlashingAlpha: { type: 'f', value: 0.0 },
                         uMouse: { type: 'f', value: new THREE.Vector2(0.0) },
                     },
@@ -119,13 +141,14 @@ class BubblesAnimation {
             transparent: true,
 
         });
-
         this.bubbles = new THREE.Points(geometry, customMaterial);
         this.bubbles.name = 'memory';
         scene.add(this.bubbles);
+        console.log(this.bubbles);
     }
 
     updateSubSystem(subsystemPayload) {
+        this.mainBrain.thinkingAnimation.isActive(true);
         this.bubbles.geometry.attributes.bubbles.needsUpdate = false;
         const cameraPos = this.mainBrain.camera.position;
         const { target } = this.mainBrain.orbitControls;
@@ -145,6 +168,7 @@ class BubblesAnimation {
                 this.getBubblesSelected(bubblesAttr, subsystemPayload);
                 this.bubbles.geometry.attributes.bubbles.needsUpdate = true;
                 this.animate(true);
+                this.mainBrain.thinkingAnimation.isActive(false);
             },
         });
     }
@@ -164,13 +188,13 @@ class BubblesAnimation {
 
     flashingAnimation(isActive) {
         this.bubbles.material.uniforms.uIsFlashing.value = isActive;
-
+        this.mainBrain.thinkingAnimation.isActive(false)
         if (isActive) {
             const progress = { p: 0.0 };
             TweenMax.fromTo(progress, 2.5, { p: 0.0 }, {
                 p: 1.0,
                 ease: Power1.easeInOut,
-                onUpdate: (value) => {
+                onUpdate: () => {
                     this.bubbles.material.uniforms.uFlashingAlpha.value = progress.p;
                     this.isFlashing = true;
                 },
@@ -180,7 +204,7 @@ class BubblesAnimation {
             TweenMax.fromTo(progress, 2.5, { p: 1.0 }, {
                 p: 0.0,
                 ease: Power1.easeInOut,
-                onUpdate: (value) => {
+                onUpdate: () => {
                     this.bubbles.material.uniforms.uFlashingAlpha.value = progress.p;
                     this.isFlashing = false;
                 },

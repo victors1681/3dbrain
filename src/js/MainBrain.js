@@ -4,6 +4,7 @@ import 'three/examples/js/BufferGeometryUtils';
 import AbstractApplication from 'views/AbstractApplication';
 import Loaders from './Loaders/Loaders';
 import BubblesAnimation from './services/bubblesAnimation';
+import ThinkingAnimation from './services/thinkingAnimation';
 import GUI from './services/gui';
 import Font from './services/font';
 import ParticleSystem from './services/particlesSystem';
@@ -23,6 +24,7 @@ class MainBrain extends AbstractApplication {
         this.particlesStartColor = new THREE.Color(0xffffff);
         this.loaders = new Loaders(this.runAnimation.bind(this));
         this.memories = Memories;
+        this.memorySelected = ['analytic', 'episodic', 'process', 'semantic', 'affective'];
     }
 
     addFloor() {
@@ -127,7 +129,10 @@ class MainBrain extends AbstractApplication {
         this.addParticlesSystem();
         this.font = new Font(this.loaders, this.scene);
         this.bubblesAnimation = new BubblesAnimation(this);
-        this.bubblesAnimation.initAnimation('episodic');
+        this.bubblesAnimation.initAnimation();
+
+        this.thinkingAnimation = new ThinkingAnimation(this);
+        this.thinkingAnimation.initAnimation();
 
         // Set Background
         this.scene.background = this.loaders.assets.get('sky');
@@ -143,6 +148,7 @@ class MainBrain extends AbstractApplication {
 
         this.particlesSystem.update(this.deltaTime);
         this.bubblesAnimation.update(this.camera, this.deltaTime);
+        this.thinkingAnimation.update(this.camera, this.deltaTime);
 
         this.stats.update();
         requestAnimationFrame(this.animate.bind(this));

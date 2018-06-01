@@ -65,7 +65,7 @@ void main()
     }
 
     if(bubbles.w == 2.0) {
-             alpha = clamp(abs(sin(uTime - bubbles.y)), 0.3, 1.0);
+           alpha = clamp(abs(sin(uTime - bubbles.y)), 0.3, 1.0);
            gl_PointSize = size + 85.0;
 
            gl_PointSize = clamp(uBubblesUp, 1.0, 0.0) * gl_PointSize ;
