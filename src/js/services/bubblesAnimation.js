@@ -54,21 +54,6 @@ class BubblesAnimation {
         return bubbleList;
     }
 
-    getLoadingPosition(memories) {
-        const loadingPosition = [];
-
-        this.memorySelected.forEach((m) => {
-            const memory = memories[m][0].attributes.position.array;
-            const randomPos = THREE.Math.randInt(0, (memory.length / 3) - 4);
-
-            const x = memory[(randomPos * 3) + 0] || 0;
-            const y = memory[(randomPos * 3) + 1] || 0;
-            const z = memory[(randomPos * 3) + 2] || 0;
-
-            loadingPosition.push(x, y, z, 1.0);
-        });
-        return loadingPosition;
-    }
 
     initAnimation() {
         const { scene, camera, memories } = this.mainBrain;
@@ -82,18 +67,19 @@ class BubblesAnimation {
         const duration = 2.5;
         const maxPointDelay = 1.5;
         let bubbles = [];
-        let loadingPosition = [];
-        loadingPosition = this.getLoadingPosition(memories);
+        const memory = [];
 
         bubbles = this.getBubblesSelected(bubbles);
 
         for (let i = 0; i < particles - (this.memorySelected.length * 3); i += 1) {
-            const mSelector = this.memorySelected[THREE.Math.randInt(0, 4)];
+            const r = THREE.Math.randInt(0, 4);
+            const mSelector = this.memorySelected[r];
             const x = memories[mSelector][0].attributes.position.array[(i * 3) + 0] || 0;
             const y = memories[mSelector][0].attributes.position.array[(i * 3) + 1] || 0;
             const z = memories[mSelector][0].attributes.position.array[(i * 3) + 2] || 0;
 
             positions.push(x, y, z);
+            memory.push(x, y, z, r);
 
             sizes[i] = THREE.Math.randFloat(10.0, 20.0);
             if ((i % 100) === 0) {
@@ -105,38 +91,39 @@ class BubblesAnimation {
 
             delay[(i * 2) + 0] = THREE.Math.randFloat(0.5, maxPointDelay);
             delay[(i * 2) + 1] = duration;
-
-            loadingPosition.push(THREE.Math.randInt(100, 250), THREE.Math.randInt(100, 250), 0, THREE.Math.randInt(100, 250), 0.0);
         }
 
-        geometry.addAttribute('aLoadingAnimation', new THREE.Float32Attribute(loadingPosition, 4));
         geometry.addAttribute('aDelayDuration', new THREE.Float32Attribute(delay, 2));
         geometry.addAttribute('bubbles', new THREE.Float32Attribute(bubbles, 4));
         geometry.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
         geometry.addAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+        geometry.addAttribute('aMemory', new THREE.Float32BufferAttribute(memory, 4));
         geometry.computeBoundingSphere();
         const customMaterial = new THREE.ShaderMaterial({
             uniforms:
                     {
-                        c: { type: 'f', value: 0.9 },
-                        p: { type: 'f', value: 2.8 },
+                        c: { type: 'f', value: 0.9 },                           //Control the dynamically intensity.. Disabled
+                        p: { type: 'f', value: 2.8 },                           //Control the dynamically intensity.. Disabled
                         glowColor: { type: 'c', value: new THREE.Color(0x2C3E93) },
-                        viewVector: { type: 'v3', value: camera.position },
+                        viewVector: { type: 'v3', value: camera.position },     //To make intensity dynamically.. Disabled
                         uTime: { type: 'f', value: 0.0 },
-                        uSlowTime: { type: 'f', value: 0.0 },
-                        uBubblesUp: { type: 'f', value: 0.0 },
-                        uIsFlashing: { type: 'b', value: false },
-                        uLoading: { type: 'b', value: false },
-                        uFlashingAlpha: { type: 'f', value: 0.0 },
+                        uSlowTime: { type: 'f', value: 0.0 },                    //Slow time to make some particles blinking slowly
+                        uBubblesUp: { type: 'f', value: 0.0 },                   //Start the animation bubbling up
+                        uIsFlashing: { type: 'b', value: false },                //Make the whole brain flashin
+                        isWinnerActive: { type: 'b', value: true },             //Active the winner section of the brain
+                        uWinnerSelected: { type: 'f', value: 3.0 },              //activate secction of the brain from 0 - 4 ['analytic', 'episodic', 'process', 'semantic', 'affective'];
+                        uFlashingAlpha: { type: 'f', value: 0.0 },               //Smooth fade out and fade in to activate or deactivate
                         uMouse: { type: 'f', value: new THREE.Vector2(0.0) },
                     },
             vertexShader: glowVertex,
             fragmentShader: glowFrag,
-            vertexColors: THREE.VertexColors,
+            //vertexColors: THREE.VertexColors,
+            shading: THREE.SmoothShading,
             blending: THREE.AdditiveBlending,
             side: THREE.DoubleSide,
             depthTest: false,
+            vertexColors: false,
             depthWrite: true,
             transparent: true,
 
@@ -173,7 +160,7 @@ class BubblesAnimation {
         });
     }
 
-    update(camera, subsystem) {
+    update(camera) {
         this.bubbles.material.uniforms.viewVector.value =
           new THREE.Vector3().subVectors(camera.position, this.bubbles.position);
         this.bubbles.material.uniforms.uTime.value += 1 / 20;
@@ -188,7 +175,7 @@ class BubblesAnimation {
 
     flashingAnimation(isActive) {
         this.bubbles.material.uniforms.uIsFlashing.value = isActive;
-        this.mainBrain.thinkingAnimation.isActive(false)
+        this.mainBrain.thinkingAnimation.isActive(false);
         if (isActive) {
             const progress = { p: 0.0 };
             TweenMax.fromTo(progress, 2.5, { p: 0.0 }, {

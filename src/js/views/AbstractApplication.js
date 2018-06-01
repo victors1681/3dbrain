@@ -42,7 +42,7 @@ class AbstractApplication {
         this.orbitControls.enableZoom = true;
         this.orbitControls.zoomSpeed = 0.1;
         this.orbitControls.panSpeed = 0.1;
-        this.orbitControls.minDistance = 500;
+        this.orbitControls.minDistance = 450;
         this.orbitControls.maxDistance = 700;
         this.orbitControls.autoRotate = true;
         this.orbitControls.autoRotateSpeed = 1.0;

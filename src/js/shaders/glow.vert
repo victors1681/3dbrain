@@ -6,12 +6,17 @@ uniform float uSlowTime;
 uniform float uBubblesUp;
 uniform bool uIsFlashing;
 uniform vec2 uMouse;
+uniform bool isWinnerActive;
+uniform float uWinnerSelected;
 varying float intensity;
+varying vec4 vMemory;
 attribute vec2 aDelayDuration;
 attribute float size;
+attribute vec4 aMemory;
 attribute vec4 bubbles;
 varying float alpha;
 varying vec4 vBubbles;
+
 
  #extension GL_OES_standard_derivatives : enable
 
@@ -21,12 +26,15 @@ float easeExpoInOut(float p) {
 
 void main()
 {
+
+    //*Dinamic intencity removed is causing issues when the brain rotate. hide all points for some sections*//
+    //vec3 vNormal = normalize( normalMatrix * normal );
+	//vec3 vNormel = normalize( normalMatrix * viewVector );
+	//intensity = pow( c - dot(vNormal, vNormel), p );
+
+	intensity = 0.9;
+
     if(uIsFlashing){
-
-    vec3 vNormal = normalize( normalMatrix * normal );
-	vec3 vNormel = normalize( normalMatrix * viewVector );
-	intensity = pow( c - dot(vNormal, vNormel), p );
-
 
     vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
     gl_PointSize = size * ( 300.0 / -mvPosition.z );
@@ -40,27 +48,17 @@ void main()
            gl_PointSize = 0.9 * size;
         }
 
-
     gl_Position = projectionMatrix * mvPosition;
 
-    //vec4 mPosition = modelViewMatrix * vec4( uMouse, 1.0 , 1.0);
-    //gl_Position = projectionMatrix * mPosition;
-
-    if(bubbles.w > 0.0 && bubbles.w < 2.0 && bubbles.x != 0.0 && bubbles.y != 0.0) {
+    if(bubbles.w > 0.0 && bubbles.w < 2.0 && bubbles.x != 0.0 && bubbles.y != 0.0 ) {
         gl_PointSize = size + 15.0;
-       // alpha = clamp(sin(uTime + uBurbleUp), 0.1, 1.0);
-       //alpha = 1.0;
-       alpha = clamp(abs(sin(uTime - bubbles.y)), 0.3, 1.0);
+        alpha = clamp(abs(sin(uTime - bubbles.y)), 0.3, 1.0);
 
-        //float tProgress = clamp(ububblesUp - aDelayDuration.x, 0.0, aDelayDuration.y);
-        float tProgress = smoothstep(0.0, aDelayDuration.x, uBubblesUp);// / aDelayDuration.y;
-        //tProgress = easeExpoInOut(tProgress);
-
+        float tProgress = smoothstep(0.0, aDelayDuration.x, uBubblesUp);
         vec3 tranlated = mix(position, bubbles.xyz, tProgress);
         vec4 bPosition = modelViewMatrix * vec4( tranlated, 1.0 );
 
         gl_PointSize = clamp(uBubblesUp, 1.0, 0.0) * gl_PointSize ;
-       // vec4 transformed = vec4(bubbles.xyz, 1.0);
         gl_Position +=  projectionMatrix * bPosition ;
     }
 
@@ -76,6 +74,14 @@ void main()
     }
     vBubbles = bubbles;
 
+    }
+
+    //Show only the brain section activate and hide all blinking dots ecept memory bubbles
+    if(aMemory.w == uWinnerSelected && isWinnerActive){
+        vMemory = aMemory;
+        intensity = 0.9;
+    }else if(bubbles.w != 2.0  && bubbles.w != 3.0 && isWinnerActive ){
+        alpha = 0.0;
     }
 
 }
