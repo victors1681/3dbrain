@@ -41,7 +41,7 @@
         "processor": "BpnLearningProcessor"
       }
     ],
-    "winningSubsystem": "AIML",
+    "winningSubsystem": "FAQ",
     "initialContext": {
       "dialogState": "ACTIVE",
       "contextId": "763decf0-31b2-4e3c-b44b-531a294c6fcf",

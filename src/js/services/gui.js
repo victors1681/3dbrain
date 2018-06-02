@@ -28,6 +28,7 @@ class GUI {
             this.particleGlow = 0xDDE3E9;
             this.memory = 1;
             this.thinking = false;
+            this.startIntro = false;
         }();
 
         const gui = new dat.GUI();
@@ -73,6 +74,10 @@ class GUI {
 
         gui.add(this.controls, 'showBubbles').onChange((val) => {
             mainBrain.bubblesAnimation.animate(val);
+        });
+
+        gui.add(this.controls, 'startIntro').onChange((val) => {
+            mainBrain.startIntro(val);
         });
 
         gui.add(this.controls, 'thinking').onChange((e) => { mainBrain.thinkingAnimation.isActive(e); });

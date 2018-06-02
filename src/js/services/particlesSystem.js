@@ -1,10 +1,11 @@
 /* eslint no-param-reassign: ["error", { "props": true, "ignorePropertyModificationsFor": ["data"] }] */
 import * as BAS from 'three-bas';
 import * as THREE from 'three';
+import { Power1, TweenMax } from 'gsap';
 import Chuncks from './chunks';
 
 class ParticleSystem {
-    constructor(brainParticles, memories) {
+    constructor(mainBrain, brainParticles, memories) {
         this.chuncks = new Chuncks();
         this.brainParticles = brainParticles;
         this.memories = memories;
@@ -12,6 +13,7 @@ class ParticleSystem {
         this.particlesStartColor = new THREE.Color(0xffffff);
         this.particlesColor = new THREE.Color(0xffffff);
         this.particles = this.init();
+        this.mainBrain = mainBrain;
     }
 
     static getLoadingPoints() {
@@ -36,11 +38,11 @@ class ParticleSystem {
             if (loadingCircle.length < brainPoints.length) {
                 startVec3.x = loadingCircle[(index * 3) + 0] || 0.0;
                 startVec3.y = loadingCircle[(index * 3) + 1] || 0.0;
-                startVec3.z = THREE.Math.randFloat(-80.0, 80.0); // loadingCircle[index * 3 + 2] || 0
+                startVec3.z = THREE.Math.randFloat(-80.0, 1500.0); // loadingCircle[index * 3 + 2] || 0
             } else {
                 startVec3.x = 100.0;
                 startVec3.y = 100.0;
-                startVec3.z = -1000; // loadingCircle[index * 3 + 2] || 0
+                startVec3.z = THREE.Math.randFloat(-80.0, 1500.0); // loadingCircle[index * 3 + 2] || 0
             }
             startVec3.toArray(data);
         });
@@ -236,9 +238,35 @@ class ParticleSystem {
     }
 
     updateTransitioning(val) {
-        this.particles.material.uniforms.uProgress.value = val;
-        this.particles.customDepthMaterial.uniforms.uProgress.value = val;
-        this.particles.customDistanceMaterial.uniforms.uProgress.value = val;
+        this.particles.material.uniforms.uProgress.value += 1 / 300;
+        this.particles.customDepthMaterial.uniforms.uProgress.value += 1 / 300;
+        this.particles.customDistanceMaterial.uniforms.uProgress.value += 1 / 300;
+    }
+
+    transform(status) {
+        if (status) {
+            const progress = { p: 0.0 };
+            TweenMax.fromTo(progress, 5.9, { p: 0.0 }, {
+                p: 1.5,
+                ease: Power1.easeIn,
+                onUpdate: () => {
+                    this.updateTransitioning(progress.p);
+                },
+                onComplete: () => {
+                    this.mainBrain.orbitControls.maxDistance = 700;
+                    this.mainBrain.orbitControls.autoRotate = true;
+                },
+            });
+        } else {
+            const progress = { p: 1.0 };
+            TweenMax.fromTo(progress, 2.0, { p: 1.0 }, {
+                p: 0.5,
+                ease: Power1.easeIn,
+                onUpdate: () => {
+                    this.updateTransitioning(progress.p);
+                },
+            });
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 /* eslint no-param-reassign: ["error", { "props": true, "ignorePropertyModificationsFor": ["child", memories] }] */
 import * as THREE from 'three';
+import { Power1, Power4, TweenMax, Back } from 'gsap';
 import 'three/examples/js/BufferGeometryUtils';
 import AbstractApplication from 'views/AbstractApplication';
 import Loaders from './Loaders/Loaders';
@@ -58,7 +59,6 @@ class MainBrain extends AbstractApplication {
     }
 
     addBrain() {
-        console.error('Brain', this.loaders.BRAIN_MODEL);
         this.brainBufferGeometries = [];
 
         this.loaders.BRAIN_MODEL.traverse((child) => {
@@ -76,8 +76,20 @@ class MainBrain extends AbstractApplication {
 
         this.endPointsCollections = THREE.BufferGeometryUtils.mergeBufferGeometries(this.brainBufferGeometries);
         console.log('Unique Geometry', this.endPointsCollections);
+    }
 
-        console.log('MEMORIES OBJECT', this.memories);
+    startIntro() {
+        const progress = { p: 1000 };
+        TweenMax.fromTo(progress, 6.5, { p: 1000 }, {
+            p: 500,
+            ease: Power4.easeInOut,
+            onUpdate: () => {
+                this.camera.position.z = progress.p;
+            },
+            onStart: () => {
+                this.particlesSystem.transform(true);
+            },
+        });
     }
 
     static addLinesPath(mesh, memories) {
@@ -105,22 +117,6 @@ class MainBrain extends AbstractApplication {
             }
             return [];
         });
-    }
-
-    loadAmelia() {
-        const ameliaBuffer = [];
-
-        console.error('AMELIA', this.loaders.AMELIA_MODEL);
-        //  this.scene.add(this.loaders.AMELIA_MODEL)
-        this.loaders.AMELIA_MODEL.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-                child.geometry.verticesNeedUpdate = true;
-                ameliaBuffer.push(child.geometry);
-            }
-        });
-
-        this.endPointsCollectionsAmelia = THREE.BufferGeometryUtils.mergeBufferGeometries(ameliaBuffer);
-        console.log('Amelia all Points buffer', this.endPointsCollectionsAmelia);
     }
 
     runAnimation() {
@@ -161,7 +157,7 @@ class MainBrain extends AbstractApplication {
         this.bubblesAnimation.updateMouse(new THREE.Vector2(x, y));
     }
     addParticlesSystem() {
-        this.particlesSystem = new ParticleSystem(this.endPointsCollections, this.memories);
+        this.particlesSystem = new ParticleSystem(this, this.endPointsCollections, this.memories);
         this.scene.add(this.particlesSystem.particles);
     }
 

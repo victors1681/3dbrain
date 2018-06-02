@@ -6,7 +6,7 @@ import { EffectComposer, GlitchPass, BlurPass, RenderPass } from 'postprocessing
 class AbstractApplication {
     constructor() {
         this.a_camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
-        this.a_camera.position.z = 500;
+        this.a_camera.position.z = 1000;
         // this.ambienColor = '#E7EBF3'
 
         this.a_scene = new THREE.Scene();
@@ -43,8 +43,8 @@ class AbstractApplication {
         this.orbitControls.zoomSpeed = 0.1;
         this.orbitControls.panSpeed = 0.1;
         this.orbitControls.minDistance = 450;
-        this.orbitControls.maxDistance = 700;
-        this.orbitControls.autoRotate = true;
+        this.orbitControls.maxDistance = 2500;
+        this.orbitControls.autoRotate = false;
         this.orbitControls.autoRotateSpeed = 1.0;
         this.orbitControls.rotateSpeed = 0.1;
         this.orbitControls.screenSpacePanning = true;

@@ -15,6 +15,7 @@ class BubblesAnimation {
         this.isBubblesInserted = false;
         this.winner = '';
         this.winnerGroup = '';
+        this.fistCameraReposition = false;
     }
 
     /**
@@ -52,7 +53,11 @@ class BubblesAnimation {
             } else {
                 bubbleList.push(x, altitude, z, 2.0); // w = 2.0 for select biggest bubbles
             }
-            this.mainBrain.font.makeTextSprite(_.capitalize(m.subsystem), parent, new THREE.Vector3(x, altitude - 15, z), 4);
+            const group = new THREE.Object3D();
+            parent.add(group);
+
+            this.mainBrain.font.makeTextSprite(_.capitalize(m.subsystem), group, new THREE.Vector3(x, altitude - 15, z), 4);
+            this.mainBrain.font.makeTextSprite(m.time, group, new THREE.Vector3(x, altitude - 19, z), 2.0);
         });
 
         // Inject bubbles selected in to the all flashing bubbles replace the older one
@@ -218,14 +223,20 @@ class BubblesAnimation {
             ease: Power1.easeInOut,
             onUpdate: () => {
                 this.updateBurbleUp(progress.p);
-                this.mainBrain.orbitControls.target.set(target.x, target.y - progress.p, target.z);
-                this.mainBrain.camera.position.set(cameraPos.x, cameraPos.y - progress.p, cameraPos.z);
+                // this.mainBrain.orbitControls.target.set(target.x, target.y - progress.p, target.z);
+                // this.mainBrain.camera.position.set(cameraPos.x, cameraPos.y - progress.p, cameraPos.z);
+            },
+            onStart: () => {
+                if (this.fistCameraReposition) {
+                    this.animate(false);
+                }
             },
             onComplete: () => {
                 this.getBubblesSelected(bubblesAttr, payload);
                 this.bubbles.geometry.attributes.bubbles.needsUpdate = true;
                 this.animate(true);
                 this.mainBrain.thinkingAnimation.isActive(false);
+                this.fistCameraReposition = true;
             },
         });
     }
@@ -292,28 +303,30 @@ class BubblesAnimation {
             this.flashingAnimation(true);
         }
         if (isActive) {
-            const progress = { p: 0.0 };
-            TweenMax.fromTo(progress, 2.5, { p: 0.0 }, {
+            const progress = { p: 0.0, camera: 0.0 };
+            TweenMax.fromTo(progress, 2.5, { p: 0.0, camera: 0.0 }, {
                 p: 1.0,
+                camera: 0.5,
                 ease: Power1.easeInOut,
                 onUpdate: () => {
                     this.updateBurbleUp(progress.p);
-                    this.mainBrain.orbitControls.target.set(target.x, target.y + progress.p, target.z);
-                    this.mainBrain.camera.position.set(cameraPos.x, cameraPos.y + progress.p, cameraPos.z);
+                    this.mainBrain.orbitControls.target.set(target.x, target.y + progress.camera, target.z);
+                    this.mainBrain.camera.position.set(cameraPos.x, cameraPos.y + progress.camera, cameraPos.z);
                 },
                 onComplete: () => {
                     this.isWinnerActive(true);
                 },
             });
         } else {
-            const progress = { p: 1.0 };
-            TweenMax.fromTo(progress, 2.5, { p: 1.0 }, {
+            const progress = { p: 1.0, camera: 0.5 };
+            TweenMax.fromTo(progress, 2.5, { p: 1.0, camera: 0.5 }, {
                 p: 0.0,
+                camera: 0.0,
                 ease: Power1.easeInOut,
                 onUpdate: () => {
                     this.updateBurbleUp(progress.p);
-                    this.mainBrain.orbitControls.target.set(target.x, target.y - progress.p, target.z);
-                    this.mainBrain.camera.position.set(cameraPos.x, cameraPos.y - progress.p, cameraPos.z);
+                    this.mainBrain.orbitControls.target.set(target.x, target.y - progress.camera, target.z);
+                    this.mainBrain.camera.position.set(cameraPos.x, cameraPos.y - progress.camera, cameraPos.z);
                 },
                 onStart: () => {
                     this.isWinnerActive(false);
