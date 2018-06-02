@@ -4,12 +4,17 @@ import { Power1, TweenMax } from 'gsap';
 import _ from 'lodash';
 import glowVertex from '../shaders/glow.vert';
 import glowFrag from '../shaders/glow.frag';
+import memoryMapping from '../data/memoryMaping.json';
+import testPayload from '../data/testPayload';
 
 class BubblesAnimation {
     constructor(mainBrain) {
         this.mainBrain = mainBrain;
         this.isFlashing = false;
         this.memorySelected = mainBrain.memorySelected;
+        this.isBubblesInserted = false;
+        this.winner = '';
+        this.winnerGroup = '';
     }
 
     /**
@@ -20,38 +25,101 @@ class BubblesAnimation {
     getBubblesSelected(bubbles, subsystem) {
         const { memories } = this.mainBrain;
         const bubbleList = [];
-        this.memorySelected.forEach((m) => {
-            const memory = memories[m][0].attributes.position.array;
+        console.log(subsystem);
+        const { winner, winnerGroup, subsystemResults } = subsystem;
+
+        // Update Winner to use in Update animation
+        this.winner = winner;
+        this.winnerGroup = winnerGroup;
+
+        subsystemResults.forEach((m) => {
+            const memoryGroup = BubblesAnimation.getSubsystemGroup(m.subsystem) || 'episodic';
+
+            const memory = memories[memoryGroup][0].attributes.position.array;
             const randomPos = THREE.Math.randInt(0, (memory.length / 3) - 4);
 
-            const x = memory[(randomPos * 3) + 0] || 0;
-            const y = memory[(randomPos * 3) + 1] || 0;
-            const z = memory[(randomPos * 3) + 2] || 0;
+            let x = memory[(randomPos * 3) + 0] || 0;
+            // let y = memory[(randomPos * 3) + 1] || 0;
+            let z = memory[(randomPos * 3) + 2] || 0;
 
-            const altitude = THREE.Math.randInt(150, 190);
+            let altitude = THREE.Math.randInt(120, 150);
             const parent = this.mainBrain.particlesSystem.particles;
 
-            this.mainBrain.font.makeTextSprite(_.capitalize(m), parent, new THREE.Vector3(x, altitude - 15, z), 4);
-
-            bubbleList.push(x, altitude, z, 2.0); // w = 2.0 for select biggest bubbles
+            if (winner === m.subsystem) {
+                altitude = 200; // highest position
+                x = 0; z = 0;
+                bubbleList.push(x, 180, z, 3.0); // w = 3.0 for the winner
+            } else {
+                bubbleList.push(x, altitude, z, 2.0); // w = 2.0 for select biggest bubbles
+            }
+            this.mainBrain.font.makeTextSprite(_.capitalize(m.subsystem), parent, new THREE.Vector3(x, altitude - 15, z), 4);
         });
 
         // Inject bubbles selected in to the all flashing bubbles replace the older one
         let memoryPos = 0;
-        for (let i = 0; i < bubbles.length / 4; i += 1) {
-            const w = bubbles[(i * 4) + 3] || 0;
+        if (this.isBubblesInserted) {
+            for (let i = 0; i < bubbles.length / 4; i += 1) {
+                const w = bubbles[(i * 4) + 3] || 0;
 
-            // Reset old position
-            if (w === 2.0 || w === 3.0) {
-                if (memoryPos < bubbleList.length / 4) {
-                    bubbles[(i * 4) + 0] = bubbleList[(memoryPos * 4) + 0];
-                    bubbles[(i * 4) + 1] = bubbleList[(memoryPos * 4) + 1];
-                    bubbles[(i * 4) + 2] = bubbleList[(memoryPos * 4) + 2];
-                    memoryPos += 1;
+                // Reset old position
+                if (w === 2.0 || w === 3.0) {
+                    if (memoryPos < bubbleList.length / 4) {
+                        bubbles[(i * 4) + 0] = bubbleList[(memoryPos * 4) + 0];
+                        bubbles[(i * 4) + 1] = bubbleList[(memoryPos * 4) + 1];
+                        bubbles[(i * 4) + 2] = bubbleList[(memoryPos * 4) + 2];
+                        memoryPos += 1;
+                    }
                 }
             }
+        } else {
+            // New Burbles
+            for (let i = 0; i < bubbleList.length / 4; i += 1) {
+                bubbles[(i * 4) + 0] = bubbleList[(memoryPos * 4) + 0];
+                bubbles[(i * 4) + 1] = bubbleList[(memoryPos * 4) + 1];
+                bubbles[(i * 4) + 2] = bubbleList[(memoryPos * 4) + 2];
+                bubbles[(i * 4) + 3] = bubbleList[(memoryPos * 4) + 3];
+                memoryPos += 1;
+            }
+            this.isBubblesInserted = true;
         }
         return bubbleList;
+    }
+
+    isWinnerActive(status) {
+        if (status) {
+            // Getting Memory Id
+            for (let i = 0; i < this.mainBrain.memorySelected.length; i += 1) {
+                if (this.mainBrain.memorySelected[i] === this.winnerGroup) {
+                    const progress = { p: 0.0 };
+                    TweenMax.fromTo(progress, 2.5, { p: 0.0 }, {
+                        p: 1.0,
+                        ease: Power1.easeInOut,
+                        onUpdate: () => {
+                            this.bubbles.material.uniforms.uWinnerAlpha.value = progress.p;
+                        },
+                        onStart: () => {
+                            this.bubbles.material.uniforms.uWinnerSelected.value = i;
+                            this.bubbles.material.uniforms.isWinnerActive.value = true;
+                        },
+                    });
+                }
+            }
+        } else {
+            {
+                const progress = { p: 1.0 };
+                TweenMax.fromTo(progress, 2.5, { p: 1.0 }, {
+                    p: 0.0,
+                    ease: Power1.easeInOut,
+                    onUpdate: () => {
+                        this.bubbles.material.uniforms.uWinnerAlpha.value = progress.p;
+                    },
+                    onComplete: () => {
+                        this.bubbles.material.uniforms.isWinnerActive.value = false;
+                        this.bubbles.material.uniforms.uWinnerSelected.value = 0.0;
+                    },
+                });
+            }
+        }
     }
 
 
@@ -66,10 +134,10 @@ class BubblesAnimation {
         const delay = [];
         const duration = 2.5;
         const maxPointDelay = 1.5;
-        let bubbles = [];
+        const bubbles = [];
         const memory = [];
 
-        bubbles = this.getBubblesSelected(bubbles);
+        // bubbles = this.getBubblesSelected(bubbles);
 
         for (let i = 0; i < particles - (this.memorySelected.length * 3); i += 1) {
             const r = THREE.Math.randInt(0, 4);
@@ -103,22 +171,22 @@ class BubblesAnimation {
         const customMaterial = new THREE.ShaderMaterial({
             uniforms:
                     {
-                        c: { type: 'f', value: 0.9 },                           //Control the dynamically intensity.. Disabled
-                        p: { type: 'f', value: 2.8 },                           //Control the dynamically intensity.. Disabled
+                        c: { type: 'f', value: 0.9 }, // Control the dynamically intensity.. Disabled
+                        p: { type: 'f', value: 2.8 }, // Control the dynamically intensity.. Disabled
                         glowColor: { type: 'c', value: new THREE.Color(0x2C3E93) },
-                        viewVector: { type: 'v3', value: camera.position },     //To make intensity dynamically.. Disabled
+                        viewVector: { type: 'v3', value: camera.position }, // To make intensity dynamically.. Disabled
                         uTime: { type: 'f', value: 0.0 },
-                        uSlowTime: { type: 'f', value: 0.0 },                    //Slow time to make some particles blinking slowly
-                        uBubblesUp: { type: 'f', value: 0.0 },                   //Start the animation bubbling up
-                        uIsFlashing: { type: 'b', value: false },                //Make the whole brain flashin
-                        isWinnerActive: { type: 'b', value: true },             //Active the winner section of the brain
-                        uWinnerSelected: { type: 'f', value: 3.0 },              //activate secction of the brain from 0 - 4 ['analytic', 'episodic', 'process', 'semantic', 'affective'];
-                        uFlashingAlpha: { type: 'f', value: 0.0 },               //Smooth fade out and fade in to activate or deactivate
+                        uSlowTime: { type: 'f', value: 0.0 }, // Slow time to make some particles blinking slowly
+                        uBubblesUp: { type: 'f', value: 0.0 }, // Start the animation bubbling up
+                        uIsFlashing: { type: 'b', value: false }, // Make the whole brain flashing
+                        isWinnerActive: { type: 'b', value: false }, // Active the winner section of the brain
+                        uWinnerSelected: { type: 'f', value: 0.0 }, // activate section of the brain from 0 - 4 ['analytic', 'episodic', 'process', 'semantic', 'affective'];
+                        uWinnerAlpha: { type: 'f', value: 0.0 }, // smooth transition
+                        uFlashingAlpha: { type: 'f', value: 0.0 }, // Smooth fade out and fade in to activate or deactivate
                         uMouse: { type: 'f', value: new THREE.Vector2(0.0) },
                     },
             vertexShader: glowVertex,
             fragmentShader: glowFrag,
-            //vertexColors: THREE.VertexColors,
             shading: THREE.SmoothShading,
             blending: THREE.AdditiveBlending,
             side: THREE.DoubleSide,
@@ -135,6 +203,7 @@ class BubblesAnimation {
     }
 
     updateSubSystem(subsystemPayload) {
+        const payload = BubblesAnimation.processSubsystemResponses(subsystemPayload);
         this.mainBrain.thinkingAnimation.isActive(true);
         this.bubbles.geometry.attributes.bubbles.needsUpdate = false;
         const cameraPos = this.mainBrain.camera.position;
@@ -142,6 +211,7 @@ class BubblesAnimation {
         const bubblesAttr = this.bubbles.geometry.attributes.bubbles.array;
         const progress = { p: 1.0 };
 
+        this.isWinnerActive(false);
         this.mainBrain.font.removeText();
         TweenMax.fromTo(progress, 2.5, { p: 1.0 }, {
             p: 0.0,
@@ -152,12 +222,28 @@ class BubblesAnimation {
                 this.mainBrain.camera.position.set(cameraPos.x, cameraPos.y - progress.p, cameraPos.z);
             },
             onComplete: () => {
-                this.getBubblesSelected(bubblesAttr, subsystemPayload);
+                this.getBubblesSelected(bubblesAttr, payload);
                 this.bubbles.geometry.attributes.bubbles.needsUpdate = true;
                 this.animate(true);
                 this.mainBrain.thinkingAnimation.isActive(false);
             },
         });
+    }
+
+    static processSubsystemResponses(realPayload) {
+        const response = testPayload.attributes;
+        const winner = response.winningSubsystem;
+        const { subsystemResults } = response;
+        const winnerGroup = BubblesAnimation.getSubsystemGroup(winner);
+        return { winner, winnerGroup, subsystemResults };
+    }
+
+    static getSubsystemGroup(subsystem) {
+        const map = _.head(_.filter(memoryMapping, { id: subsystem }));
+        if (_.has(map, 'group')) {
+            return map.group;
+        }
+        return undefined;
     }
 
     update(camera) {
@@ -215,6 +301,9 @@ class BubblesAnimation {
                     this.mainBrain.orbitControls.target.set(target.x, target.y + progress.p, target.z);
                     this.mainBrain.camera.position.set(cameraPos.x, cameraPos.y + progress.p, cameraPos.z);
                 },
+                onComplete: () => {
+                    this.isWinnerActive(true);
+                },
             });
         } else {
             const progress = { p: 1.0 };
@@ -225,6 +314,9 @@ class BubblesAnimation {
                     this.updateBurbleUp(progress.p);
                     this.mainBrain.orbitControls.target.set(target.x, target.y - progress.p, target.z);
                     this.mainBrain.camera.position.set(cameraPos.x, cameraPos.y - progress.p, cameraPos.z);
+                },
+                onStart: () => {
+                    this.isWinnerActive(false);
                 },
             });
         }

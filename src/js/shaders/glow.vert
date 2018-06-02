@@ -8,6 +8,7 @@ uniform bool uIsFlashing;
 uniform vec2 uMouse;
 uniform bool isWinnerActive;
 uniform float uWinnerSelected;
+uniform float uWinnerAlpha;
 varying float intensity;
 varying vec4 vMemory;
 attribute vec2 aDelayDuration;
@@ -63,8 +64,8 @@ void main()
     }
 
     if(bubbles.w == 2.0) {
-           alpha = clamp(abs(sin(uTime - bubbles.y)), 0.3, 1.0);
-           gl_PointSize = size + 110.0;
+           alpha = clamp(abs(sin(uTime - bubbles.y)), 0.3, 0.6);
+           gl_PointSize = size + 90.0;
 
            gl_PointSize = clamp(uBubblesUp, 1.0, 0.0) * gl_PointSize ;
            float normalized = clamp(uBubblesUp, 0.0, 2.0)* 2.0;
@@ -72,6 +73,16 @@ void main()
            vec4 bPosition = modelViewMatrix * vec4( tranlated, 1.0 );
            gl_Position +=  projectionMatrix * bPosition ;
     }
+      if(bubbles.w == 3.0) {
+               alpha = clamp(abs(sin(uTime - bubbles.y)), 0.3, 1.0);
+               gl_PointSize = size + 120.0;
+
+               gl_PointSize = clamp(uBubblesUp, 1.0, 0.0) * gl_PointSize ;
+               float normalized = clamp(uBubblesUp, 0.0, 2.0)* 2.0;
+               vec3 tranlated = mix(position, bubbles.xyz, normalized);
+               vec4 bPosition = modelViewMatrix * vec4( tranlated, 1.0 );
+               gl_Position +=  projectionMatrix * bPosition ;
+        }
     vBubbles = bubbles;
 
     }
@@ -81,7 +92,7 @@ void main()
         vMemory = aMemory;
         intensity = 0.9;
     }else if(bubbles.w != 2.0  && bubbles.w != 3.0 && isWinnerActive ){
-        alpha = 0.0;
+        alpha = mix(1.0, 0.0, uWinnerAlpha);
     }
 
 }

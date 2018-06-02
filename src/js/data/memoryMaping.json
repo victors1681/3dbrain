@@ -1,0 +1,50 @@
+[
+  {
+    "id": "IntentFAQ",
+    "group": "semantic"
+  },
+  {
+    "id": "SocialTalk",
+    "group": "semantic"
+  },
+  {
+    "id": "FAQ",
+    "group": "semantic"
+  },
+  {
+    "id": "Semnet",
+    "group": "semantic"
+  },
+  {
+    "id": "Escalate",
+    "group": "semantic"
+  },
+  {
+    "id": "EpisodicMemory",
+    "group": "episodic"
+  },
+  {
+    "id": "Affective",
+    "group": "affective"
+  },
+  {
+    "id": "AIML",
+    "group": "affective"
+  },
+  {
+    "id": "Bpn",
+    "group": "process"
+  },
+  {
+    "id": "Cqa",
+    "group": "analytic"
+  },
+  {
+    "id": "EQA",
+    "group": "analytic"
+  },
+  {
+    "id": "LogicNet",
+    "group": "analytic"
+  }
+]
