@@ -87,6 +87,7 @@
   "dependencies": {
     "@superguigui/wagner": "^0.1.6",
     "dat-gui": "^0.5.0",
+    "findup": "^0.1.5",
     "glsl-checker": "^1.0.1",
     "glsl-noise": "0.0.0",
     "glslify-fancy-imports": "^1.0.1",
