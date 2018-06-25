@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import io from 'socket.io-client';
 import 'three/examples/js/controls/OrbitControls';
 import Stats from 'three/examples/js/libs/stats.min';
 import { EffectComposer, GlitchPass, BlurPass, RenderPass } from 'postprocessing';
@@ -14,7 +15,7 @@ class AbstractApplication {
         // this.a_scene.fog = new THREE.Fog(0xcce0ff, 100, 10000)
         this.a_scene.fog = new THREE.Fog(0xC7D0E2, 300, 1300);
 
-        this.a_renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.a_renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: false });
         this.a_renderer.setPixelRatio(window.devicePixelRatio);
         this.a_renderer.setSize(window.innerWidth, window.innerHeight);
         this.a_renderer.sortObjects = false;
@@ -42,7 +43,7 @@ class AbstractApplication {
         this.orbitControls.enableZoom = true;
         this.orbitControls.zoomSpeed = 0.1;
         this.orbitControls.panSpeed = 0.1;
-        this.orbitControls.minDistance = 450;
+        this.orbitControls.minDistance = 50;
         this.orbitControls.maxDistance = 2500;
         this.orbitControls.autoRotate = false;
         this.orbitControls.autoRotateSpeed = 1.0;
@@ -51,6 +52,17 @@ class AbstractApplication {
 
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
         window.addEventListener('mousemove', this.onMouseMove.bind(this), false);
+
+
+        this.socket = io('http://localhost:3000');
+
+        console.log('init');
+
+        this.socket.on('connect', this.onConnect);
+    }
+
+    onConnect() {
+        console.log(`connect ${this.socket}`);
     }
 
     get renderer() {

@@ -96,6 +96,7 @@
     "i": "^0.3.6",
     "lodash": "^4.17.10",
     "postprocessing": "^4.5.0",
+    "socket.io-client": "^2.1.1",
     "test": "^0.6.0",
     "three": "^0.91.0",
     "three-bas": "^2.7.0",

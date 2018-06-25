@@ -98,10 +98,10 @@ class ParticleSystem {
                 uColor: { value: new THREE.Color(0xffffff) },
             },
             defines: {
-                USE_SIZEATTENUATION: true,
+                USE_SIZEATTENUATION: false, //Change size of the particle depending of the camera
             },
             uniformValues: {
-                size: 2.9,
+                size: 1.8,
                 scale: 400,
             },
             vertexFunctions: [

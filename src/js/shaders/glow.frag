@@ -16,7 +16,7 @@ void main()
 
         vec3 glow = glowColor * intensity;
         if(vBubbles.w == 3.0){ //Winner Bubble
-             glow = vec3(0.0,0.9,0.0) * intensity;
+            // glow = vec3(0.0,0.9,0.0) * intensity;
         }
 
         gl_FragColor = vec4(glow, clamp(alpha, 0.0, 1.0));
@@ -28,7 +28,7 @@ void main()
 
         //Show only the brain section activate
         if(vMemory.w == uWinnerSelected && isWinnerActive){
-            gl_FragColor += vec4(vec3(0.0,0.9,0.0),pct * gl_FragColor.a);
+            gl_FragColor += vec4(glow,pct * gl_FragColor.a);
         }
 
 }

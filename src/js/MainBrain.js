@@ -26,6 +26,9 @@ class MainBrain extends AbstractApplication {
         this.loaders = new Loaders(this.runAnimation.bind(this));
         this.memories = Memories;
         this.memorySelected = ['analytic', 'episodic', 'process', 'semantic', 'affective'];
+        this.frame = 0;
+        this.frameName = 0;
+        this.isRecording = false;
     }
 
     addFloor() {
@@ -81,7 +84,7 @@ class MainBrain extends AbstractApplication {
     startIntro() {
         const progress = { p: 1000 };
         TweenMax.fromTo(progress, 6.5, { p: 1000 }, {
-            p: 500,
+            p: 380,
             ease: Power4.easeInOut,
             onUpdate: () => {
                 this.camera.position.z = progress.p;
@@ -150,6 +153,20 @@ class MainBrain extends AbstractApplication {
         requestAnimationFrame(this.animate.bind(this));
         this.renderer.render(this.a_scene, this.a_camera);
         this.font.facingToCamera(this.camera);
+        this.camera.updateProjectionMatrix();
+
+        this.thinkingAnimation.flashing.geometry.verticesNeedUpdate = true;
+        this.thinkingAnimation.flashing.geometry.attributes.position.needsUpdate = true;
+
+        if (this.isRecording) {
+            if (this.frame > 10) {
+                this.socket.emit('render-frame', {
+                    frame: this.frameName += 1,
+                    file: document.querySelector('canvas').toDataURL(),
+                });
+            }
+            this.frame += 1;
+        }
     }
     onMouseMove(event) {
         const y = window.innerHeight - event.clientY;

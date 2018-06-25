@@ -1,6 +1,6 @@
 /* eslint no-param-reassign: ["error", { "props": true, "ignorePropertyModificationsFor": ["bubbles"] }] */
 import * as THREE from 'three';
-import { Power1, TweenMax } from 'gsap';
+import { Power1, TweenMax, Power2 } from 'gsap';
 import _ from 'lodash';
 import flashingV from '../shaders/flashing.vert';
 import flashingF from '../shaders/flashing.frag';
@@ -11,27 +11,13 @@ class ThinkingAnimation {
         this.mainBrain = mainBrain;
         this.isFlashing = false;
         this.memorySelected = mainBrain.memorySelected;
+        this.alphaAnimation = { v: 0.0 };
+        this.secuenceAnimation = 0;
     }
 
-
-    getLoadingPosition(memories) {
-        const loadingPosition = [];
-
-        this.memorySelected.forEach((m) => {
-            const memory = memories[m][0].attributes.position.array;
-            const randomPos = THREE.Math.randInt(0, (memory.length / 3) - 4);
-
-            const x = memory[(randomPos * 3) + 0] || 0;
-            const y = memory[(randomPos * 3) + 1] || 0;
-            const z = memory[(randomPos * 3) + 2] || 0;
-
-            loadingPosition.push(x, y, z, 1.0);
-        });
-        return loadingPosition;
-    }
 
     initAnimation() {
-        const { scene, camera, memories } = this.mainBrain;
+        const { scene, camera } = this.mainBrain;
 
         const particles = 10;
         const geometry = new THREE.BufferGeometry();
@@ -43,7 +29,7 @@ class ThinkingAnimation {
         const maxPointDelay = 1.5;
 
         Object.keys(flashingCoordinates).forEach((memory, index) => {
-            const light = flashingCoordinates[memory]
+            const light = flashingCoordinates[memory];
 
             positions.push(light.x, light.y, light.z);
 
@@ -68,6 +54,8 @@ class ThinkingAnimation {
                     uTime: { type: 'f', value: 0.0 },
                     uFadeTime: { type: 'f', value: 0.0 },
                     uMouse: { type: 'f', value: new THREE.Vector2(0.0) },
+                    isCustomAlpha: { type: 'b', value: false },
+                    uAlpha: { type: 'float', value: 0.0 },
                 },
             vertexShader: flashingV,
             fragmentShader: flashingF,
@@ -82,7 +70,95 @@ class ThinkingAnimation {
         this.flashing = new THREE.Points(geometry, customMaterial);
         this.flashing.name = 'flashing';
         scene.add(this.flashing);
-        console.log(this.flashing);
+    }
+
+    animationCamera(val) {
+        //this.mainBrain.isRecording = true;
+        // this.isActive(true);
+        this.flashing.material.uniforms.uFadeTime.value = 1;
+        this.isFlashing = true;
+
+
+        if (this.alphaAnimation.v === 0.0) {
+            TweenMax.fromTo(this.alphaAnimation, 2.5, { v: 0.0 }, {
+                v: 1.0,
+                ease: Power1.easeInOut,
+                onStart: () => {
+                    this.selectMemoryThinking(val);
+                },
+                onUpdate: () => {
+                    this.flashing.material.uniforms.uAlpha.value = this.alphaAnimation.v;
+                },
+            });
+        } else {
+            TweenMax.fromTo(this.alphaAnimation, 1.0, { v: 1.0 }, {
+                v: 0.0,
+                ease: Power1.easeInOut,
+                onUpdate: () => {
+                    this.flashing.material.uniforms.uAlpha.value = this.alphaAnimation.v;
+                },
+                onComplete: () => {
+                    this.thinkingFadeIn(val);
+                },
+            });
+        }
+
+        this.flashing.geometry.setDrawRange(0, 1);
+    }
+
+    selectMemoryThinking(val) {
+        const lights = Object.keys(flashingCoordinates);
+        const light = lights[Math.floor(val)];
+
+        const locations = flashingCoordinates[light];
+
+        if (locations.camera === -1) {
+            this.mainBrain.isRecording = false;
+            return;
+        }
+
+        const positions = this.flashing.geometry.attributes.position.array;
+
+        for (let i = 0; i < positions.length; i += 1) {
+            positions[ (i * 3) ] = locations.x;
+            positions[(i * 3) + 1] = locations.y;
+            positions[(i * 3) + 2] = locations.z;
+        }
+
+        this.flashing.material.uniforms.isCustomAlpha.value = true;
+
+        const { camera } = this.mainBrain;
+
+        const cameraPos = { x: camera.position.x, y: camera.position.y, z: camera.position.z };
+
+        TweenMax.fromTo(cameraPos, 1.5, { x: cameraPos.x, y: cameraPos.y, z: cameraPos.z }, {
+            x: locations.camera.x,
+            y: locations.camera.y,
+            z: locations.camera.z,
+            ease: Power1.easeInOut,
+            onUpdate: () => {
+                camera.position.x = cameraPos.x;
+                camera.position.y = cameraPos.y;
+                camera.position.z = cameraPos.z;
+            },
+            onComplete: () => {
+                this.secuenceAnimation += 1;
+                this.animationCamera(this.secuenceAnimation);
+            },
+        });
+    }
+
+    thinkingFadeIn(val) {
+        TweenMax.fromTo(this.alphaAnimation, 2.5, { v: 0.0 }, {
+            v: 1.0,
+            ease: Power1.easeInOut,
+            onUpdate: () => {
+                this.flashing.material.uniforms.uAlpha.value = this.alphaAnimation.v;
+            },
+            onStart: () => {
+                this.selectMemoryThinking(val);
+            },
+        });
     }
 
     updateSubSystem(subsystemPayload) {

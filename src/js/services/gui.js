@@ -29,12 +29,24 @@ class GUI {
             this.memory = 1;
             this.thinking = false;
             this.startIntro = false;
+            this.recording = false;
+            this.cameraAnimation = 1;
+            this.cameraPosition = function () {
+                console.log(mainBrain.camera.position);
+            };
         }();
 
         const gui = new dat.GUI();
+
+        gui.add(this.controls, 'cameraPosition');
+
         gui.add(this.controls, 'rotationSpeed', 0.1, 2.0);
         gui.add(this.controls, 'autoRotate').onChange((val) => {
             mainBrain.orbitControls.autoRotate = val;
+        });
+
+        gui.add(this.controls, 'recording').onChange((val) => {
+            mainBrain.isRecording = val;
         });
 
         gui.add(this.controls, 'lightIntensity', 0.0, 2.0).onChange((val) => {
@@ -48,6 +60,10 @@ class GUI {
                 this.scene.remove(this.spotLightHelper);
             }
         });
+        gui.add(this.controls, 'cameraAnimation', 0, 5).onFinishChange((val) => {
+            mainBrain.thinkingAnimation.animationCamera(val);
+        });
+
         gui.add(this.controls, 'lightDistance', 0.0, 1800.0).onChange((val) => {
             this.spotLight.position.set(0, val, -10);
         });

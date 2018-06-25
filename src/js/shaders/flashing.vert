@@ -8,6 +8,8 @@ attribute vec2 aDelayDuration;
 attribute float size;
 varying float intensity;
 varying float alpha;
+uniform float uAlpha;
+uniform bool isCustomAlpha;
 
 void main()
 {
@@ -32,6 +34,13 @@ void main()
         if(m > 0.0 && m < 0.5){
           alpha = clamp(abs(sin(uTime * 10.0)), 0.2, 0.7);
         }
+
+
+        //static ligthning
+        if( isCustomAlpha ) {
+            alpha = uAlpha;
+        }
+
 
     gl_PointSize = 9.5 * size;
 
