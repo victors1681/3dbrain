@@ -19,7 +19,6 @@ varying float alpha;
 varying vec4 vBubbles;
 
 
- #extension GL_OES_standard_derivatives : enable
 
 float easeExpoInOut(float p) {
     return ((p *= 2.0) < 1.0) ? 0.5 * pow(2.0, 10.0 * (p - 1.0)) : 0.5 * (2.0 - pow(2.0, -10.0 * (p - 1.0)));
@@ -27,11 +26,6 @@ float easeExpoInOut(float p) {
 
 void main()
 {
-
-    //*Dinamic intencity removed is causing issues when the brain rotate. hide all points for some sections*//
-    //vec3 vNormal = normalize( normalMatrix * normal );
-	//vec3 vNormel = normalize( normalMatrix * viewVector );
-	//intensity = pow( c - dot(vNormal, vNormel), p );
 
 	intensity = 0.9;
 
@@ -59,15 +53,16 @@ void main()
         vec3 tranlated = mix(position, bubbles.xyz, tProgress);
         vec4 bPosition = modelViewMatrix * vec4( tranlated, 1.0 );
 
-        gl_PointSize = clamp(uBubblesUp, 1.0, 0.0) * gl_PointSize ;
+        gl_PointSize = uBubblesUp * gl_PointSize;
         gl_Position +=  projectionMatrix * bPosition ;
+        alpha = 5.0;
     }
 
     if(bubbles.w == 2.0) {
            alpha = clamp(abs(sin(uTime - bubbles.y)), 0.3, 0.6);
            gl_PointSize = size + 60.0;
 
-           gl_PointSize = clamp(uBubblesUp, 1.0, 0.0) * gl_PointSize ;
+           gl_PointSize = uBubblesUp * gl_PointSize;
            float normalized = clamp(uBubblesUp, 0.0, 2.0)* 2.0;
            vec3 tranlated = mix(position, bubbles.xyz, normalized);
            vec4 bPosition = modelViewMatrix * vec4( tranlated, 1.0 );
@@ -77,7 +72,7 @@ void main()
                alpha = clamp(abs(sin(uTime - bubbles.y)), 0.3, 1.0);
                gl_PointSize = size + 90.0;
 
-               gl_PointSize = clamp(uBubblesUp, 1.0, 0.0) * gl_PointSize ;
+               gl_PointSize = uBubblesUp * gl_PointSize;
                float normalized = clamp(uBubblesUp, 0.0, 2.0)* 2.0;
                vec3 tranlated = mix(position, bubbles.xyz, normalized);
                vec4 bPosition = modelViewMatrix * vec4( tranlated, 1.0 );

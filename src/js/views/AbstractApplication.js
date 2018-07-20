@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import io from 'socket.io-client';
 import 'three/examples/js/controls/OrbitControls';
 import Stats from 'three/examples/js/libs/stats.min';
-import { EffectComposer, GlitchPass, BlurPass, RenderPass } from 'postprocessing';
+import { EffectComposer, GlitchPass, BlurPass, RenderPass, ShaderPass, SepiaShader, BloomPass, OutlinePass } from 'postprocessing';
 
 class AbstractApplication {
     constructor() {
@@ -11,9 +11,9 @@ class AbstractApplication {
         // this.ambienColor = '#E7EBF3'
 
         this.a_scene = new THREE.Scene();
-        this.a_scene.background = new THREE.Color('#C7D0E2');
+        this.a_scene.background = new THREE.Color('#a7b6d2');
         // this.a_scene.fog = new THREE.Fog(0xcce0ff, 100, 10000)
-        this.a_scene.fog = new THREE.Fog(0xC7D0E2, 300, 1300);
+        this.a_scene.fog = new THREE.Fog(0xa7b6d2, 300, 1300);
 
         this.a_renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: false });
         this.a_renderer.setPixelRatio(window.devicePixelRatio);
@@ -25,13 +25,38 @@ class AbstractApplication {
         this.a_renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.a_renderer.gammaInput = true;
         this.a_renderer.gammaOutput = true;
+        this.a_renderer.shadowDepthMaterialSide = THREE.BackSide;
 
         this.composer = new EffectComposer(this.a_renderer);
-        this.composer.addPass(new RenderPass(this.a_scene, this.a_camera));
 
-        const pass = new GlitchPass();
-        pass.renderToScreen = true;
-        this.composer.addPass(pass);
+        //PASSES
+        this.renderPass = new RenderPass(this.scene, this.camera);
+        this.composer.addPass(this.renderPass);
+
+
+
+        //this.glitchPass = new GlitchPass();
+        //this.composer.addPass(this.glitchPass);
+        //this.glitchPass.renderToScreen = true;
+
+        //this.filmPass = new FilmPass();
+        //this.composer.addPass(this.filmPass);
+
+        // this.blurPass = new BlurPass();
+        // this.composer.addPass(this.blurPass);
+
+        this.bloomPass = new BloomPass({
+            resolutionScale: 0.7,
+            resolution: 1.5,
+            intensity: 2.2,
+            distinction: 7.0,
+            blend: true,
+        });
+
+        this.composer.addPass(this.bloomPass);
+        this.bloomPass.renderToScreen = true;
+
+
 
         document.body.appendChild(this.a_renderer.domElement);
 

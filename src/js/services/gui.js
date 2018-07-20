@@ -77,7 +77,11 @@ class GUI {
             mainBrain.bubblesAnimation.updateSubSystem(testPayload);
         });
 
-        gui.addColor(this.controls, 'particleGlow').onChange((e) => { mainBrain.material.uniforms.uBackColor.value = new THREE.Color(e); });
+        gui.addColor(this.controls, 'particleGlow').onChange((e) => {
+            //mainBrain.material.uniforms.uBackColor.value = new THREE.Color(e);
+            mainBrain.scene.background = new THREE.Color(e);
+        });
+
 
         gui.addColor(this.controls, 'floor').onChange((e) => {
             console.log(this.plane.material.color);

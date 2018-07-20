@@ -39,16 +39,19 @@ class BubblesAnimation {
             const memory = memories[memoryGroup][0].attributes.position.array;
             const randomPos = THREE.Math.randInt(0, (memory.length / 3) - 4);
 
-            let x = memory[(randomPos * 3) + 0] || 0;
+            // const x = memory[(randomPos * 3) + 0] || 0;
             // let y = memory[(randomPos * 3) + 1] || 0;
-            let z = memory[(randomPos * 3) + 2] || 0;
+            // const z = memory[(randomPos * 3) + 2] || 0;
+
+            const x = memory[0];
+            const z = memory[2];
 
             let altitude = THREE.Math.randInt(120, 150);
             const parent = this.mainBrain.particlesSystem.particles;
 
             if (winner === m.subsystem) {
                 altitude = 200; // highest position
-                x = 0; z = 0;
+
                 bubbleList.push(x, 180, z, 3.0); // w = 3.0 for the winner
             } else {
                 bubbleList.push(x, altitude, z, 2.0); // w = 2.0 for select biggest bubbles

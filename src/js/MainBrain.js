@@ -134,7 +134,7 @@ class MainBrain extends AbstractApplication {
         this.thinkingAnimation.initAnimation();
 
         // Set Background
-        this.scene.background = this.loaders.assets.get('sky');
+        //this.scene.background = this.loaders.assets.get('sky');
 
         this.animate();
     }
@@ -145,18 +145,24 @@ class MainBrain extends AbstractApplication {
 
         this.deltaTime += this.clock.getDelta();
 
-        this.particlesSystem.update(this.deltaTime);
+        this.particlesSystem.update(this.deltaTime, this.camera, this.particlesSystem.particles);
         this.bubblesAnimation.update(this.camera, this.deltaTime);
         this.thinkingAnimation.update(this.camera, this.deltaTime);
 
         this.stats.update();
         requestAnimationFrame(this.animate.bind(this));
-        this.renderer.render(this.a_scene, this.a_camera);
+
+        //this.renderer.render(this.a_scene, this.a_camera);
+
         this.font.facingToCamera(this.camera);
         this.camera.updateProjectionMatrix();
 
         this.thinkingAnimation.flashing.geometry.verticesNeedUpdate = true;
         this.thinkingAnimation.flashing.geometry.attributes.position.needsUpdate = true;
+
+
+        //composer
+        this.composer.render();
 
         if (this.isRecording) {
             if (this.frame > 10) {
@@ -176,6 +182,7 @@ class MainBrain extends AbstractApplication {
     addParticlesSystem() {
         this.particlesSystem = new ParticleSystem(this, this.endPointsCollections, this.memories);
         this.scene.add(this.particlesSystem.particles);
+        //this.scene.add(this.particlesSystem.xRay);
     }
 
     static getRandomPointOnSphere(r) {

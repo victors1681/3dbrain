@@ -19,6 +19,10 @@ void main()
             // glow = vec3(0.0,0.9,0.0) * intensity;
         }
 
+        if(alpha == 5.0) {
+            //discard;
+        }
+
         gl_FragColor = vec4(glow, clamp(alpha, 0.0, 1.0));
         gl_FragColor = vec4(glow, pct * gl_FragColor.a);
 

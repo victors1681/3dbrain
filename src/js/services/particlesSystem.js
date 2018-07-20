@@ -3,6 +3,9 @@ import * as BAS from 'three-bas';
 import * as THREE from 'three';
 import { Power1, TweenMax } from 'gsap';
 import Chuncks from './chunks';
+import xRayVertex from '../shaders/xRay.vert';
+import xRayFrag from '../shaders/xRay.frag';
+
 
 class ParticleSystem {
     constructor(mainBrain, brainParticles, memories) {
@@ -12,7 +15,9 @@ class ParticleSystem {
 
         this.particlesStartColor = new THREE.Color(0xffffff);
         this.particlesColor = new THREE.Color(0xffffff);
-        this.particles = this.init();
+        const { system, systemPoints } = this.init();
+        this.particles = systemPoints;
+        this.xRay = system;
         this.mainBrain = mainBrain;
     }
 
@@ -81,6 +86,19 @@ class ParticleSystem {
             data[1] = duration;
         });
 
+
+
+        const geometry2 = new BAS.PointBufferGeometry(count);
+
+        geometry2.createAttribute('position', 3, (data, index) => {
+            const startVec3 = new THREE.Vector3();
+            startVec3.x = brainPoints[(index * 3) + 0];
+            startVec3.y = brainPoints[(index * 3) + 1];
+            startVec3.z = brainPoints[(index * 3) + 2];
+            startVec3.toArray(data);
+        });
+
+
         const material = new BAS.PointsAnimationMaterial({
             // transparent: true,
             // blending: THREE.AdditiveBlending,
@@ -88,7 +106,7 @@ class ParticleSystem {
             deptWrite: false,
 
             blending: THREE.AdditiveBlending,
-            depthTest: false,
+            depthTest: true,
             transparent: true,
             uniforms: {
                 uTime: { type: 'f', value: 0 },
@@ -98,10 +116,10 @@ class ParticleSystem {
                 uColor: { value: new THREE.Color(0xffffff) },
             },
             defines: {
-                USE_SIZEATTENUATION: false, //Change size of the particle depending of the camera
+                USE_SIZEATTENUATION: false, // Change size of the particle depending of the camera
             },
             uniformValues: {
-                size: 1.8,
+                size: 1.9,
                 scale: 400,
             },
             vertexFunctions: [
@@ -140,7 +158,7 @@ class ParticleSystem {
                 // calculate a progress value between 0.0 and 1.0 based on the vertex delay and duration, and the uniform time
                 'float tProgress = clamp(uProgress - aDelayDuration.x, 0.0, aDelayDuration.y) / aDelayDuration.y;',
                 // // ease the progress using one of the available easing functions
-                'tProgress = easeExpoInOut(tProgress);',
+                'tProgress = 1.0;'// easexpoInOut(tProgress);',
                 // 'tProgress = uProgress;'
                 // 'if(test){ tProgress = 0.0; } else { tProgress = 1.0 ;}'
             ],
@@ -199,42 +217,52 @@ class ParticleSystem {
         float pct = 1.0 - smoothstep(0.0, 0.5, distanceToCenter);
         vec3 color = vec3(1.0) * gl_FragColor.rgb;
         gl_FragColor = vec4(color, pct * gl_FragColor.a);
-        if(vStartLoading.x == 0.0 && vStartLoading.y == 0.0){
-         // gl_FragColor.a = 0.0;
-        }
+
        `],
 
-            fragmentDiffuse: [
-                // gl_FrontFacing is a built-in glsl variable that indicates if the current fragment is front-facing
-                // if its not front facing, set diffuse color to uBackColor
-                `
-        //diffuseColor.rgb = vBackColor.xyz;
-        
-       // diffuseColor.rgb = vec3(0.0, 0.0, 1.0);
-       
-       // if( vEndPos.x > 50.0 && vEndPos.y > 50.0 ){
-       //   diffuseColor.rgb = vec3(0.0, 0.0, 1.0);
-       //    diffuseColor.a = smoothstep(0.0, 1.0, sin(vEndPos.x*10.0 + uTime)*60.0 );
-       // }
-        `,
-            ],
         });
 
-        const system = new THREE.Points(geometry, material);
-        system.castShadow = true;
-        //
-        // // depth material is used for directional & spot light shadows
-        system.customDepthMaterial = BAS.Utils.createDepthAnimationMaterial(material);
-        // // distance material is used for point light shadows
-        system.customDistanceMaterial = BAS.Utils.createDistanceAnimationMaterial(material);
+        // const materialCameraPosition = this.mainBrain.camera.position.clone();
+        // materialCameraPosition.z += 10;
 
-        return system;
+        const customMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                c: { type: 'f', value: 1.0 },
+                p: { type: 'f', value: 3 },
+                glowColor: { type: 'c', value: new THREE.Color(0x84ccff) },
+                viewVector: { type: 'v3', value: new THREE.Vector3(0,0,0) },
+            },
+            vertexShader: xRayVertex,
+            fragmentShader: xRayFrag,
+            side: THREE.FrontSide,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            //opacity: 0.1,
+            depthWrite: true,
+        });
+
+        const systemPoints = new THREE.Points(geometry, material);
+        const system = new THREE.Mesh(geometry2, customMaterial);
+        systemPoints.castShadow = true;
+        systemPoints.frustumCulled = false;
+
+        // // depth material is used for directional & spot light shadows
+        systemPoints.customDepthMaterial = BAS.Utils.createDepthAnimationMaterial(material);
+        // // distance material is used for point light shadows
+        systemPoints.customDistanceMaterial = BAS.Utils.createDistanceAnimationMaterial(material);
+
+
+        //system.rotateX(-Math.PI / 2);
+        //systemPoints.rotateX(-Math.PI / 2);
+        return { system, systemPoints };
     }
 
-    update(deltaTime) {
-        this.particles.customDepthMaterial.uniforms.uTime.value = Math.sin(deltaTime);
-        this.particles.customDistanceMaterial.uniforms.uTime.value = Math.sin(deltaTime);
+
+    update(deltaTime, camera, brain) {
+        // / this.particles.customDepthMaterial.uniforms.uTime.value = Math.sin(deltaTime);
+        // this.particles.customDistanceMaterial.uniforms.uTime.value = Math.sin(deltaTime);
         this.particles.material.uniforms.uTime.value = deltaTime;
+        this.xRay.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(camera.position, brain.position);
     }
 
     updateTransitioning(val) {
@@ -255,6 +283,7 @@ class ParticleSystem {
                 onComplete: () => {
                     this.mainBrain.orbitControls.maxDistance = 700;
                     this.mainBrain.orbitControls.autoRotate = true;
+                    this.updateTransitioning(1.5);
                 },
             });
         } else {
