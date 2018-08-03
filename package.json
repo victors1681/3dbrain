@@ -22,6 +22,7 @@
     "start": "npm run dev",
     "lint": "eslint --ext .js src",
     "build": "node build/build.js",
+    "dist": "build/webpack.prod.conf.js",
     "test": "jest",
     "test:clean": "rimraf ./coverage",
     "test:watch": "jest --watch",

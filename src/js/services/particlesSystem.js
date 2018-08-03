@@ -12,13 +12,12 @@ class ParticleSystem {
         this.chuncks = new Chuncks();
         this.brainParticles = brainParticles;
         this.memories = memories;
-
+        this.mainBrain = mainBrain;
         this.particlesStartColor = new THREE.Color(0xffffff);
         this.particlesColor = new THREE.Color(0xffffff);
         const { system, systemPoints } = this.init();
         this.particles = systemPoints;
         this.xRay = system;
-        this.mainBrain = mainBrain;
     }
 
     static getLoadingPoints() {
@@ -87,7 +86,6 @@ class ParticleSystem {
         });
 
 
-
         const geometry2 = new BAS.PointBufferGeometry(count);
 
         geometry2.createAttribute('position', 3, (data, index) => {
@@ -116,7 +114,7 @@ class ParticleSystem {
                 uColor: { value: new THREE.Color(0xffffff) },
             },
             defines: {
-                USE_SIZEATTENUATION: false, // Change size of the particle depending of the camera
+                //USE_SIZEATTENUATION: false, // Change size of the particle depending of the camera
             },
             uniformValues: {
                 size: 1.9,
@@ -158,7 +156,7 @@ class ParticleSystem {
                 // calculate a progress value between 0.0 and 1.0 based on the vertex delay and duration, and the uniform time
                 'float tProgress = clamp(uProgress - aDelayDuration.x, 0.0, aDelayDuration.y) / aDelayDuration.y;',
                 // // ease the progress using one of the available easing functions
-                'tProgress = 1.0;'// easexpoInOut(tProgress);',
+                'tProgress = easeExpoInOut(tProgress);',
                 // 'tProgress = uProgress;'
                 // 'if(test){ tProgress = 0.0; } else { tProgress = 1.0 ;}'
             ],
@@ -195,8 +193,7 @@ class ParticleSystem {
             vertexColor: [
                 // linearly interpolate between the start and end position based on tProgress
                 // and add the value as a delta
-                `
-         vColor = mix(aStartColor, aEndColor, tProgress);
+                ` 
          vParticle = aEndPos;
          
         vEndPos = aEndPos;
@@ -227,33 +224,70 @@ class ParticleSystem {
 
         const customMaterial = new THREE.ShaderMaterial({
             uniforms: {
-                c: { type: 'f', value: 1.0 },
-                p: { type: 'f', value: 3 },
+                c: { type: 'f', value: 0.9 },
+                p: { type: 'f', value: 6.7 },
                 glowColor: { type: 'c', value: new THREE.Color(0x84ccff) },
-                viewVector: { type: 'v3', value: new THREE.Vector3(0,0,0) },
+                viewVector: { type: 'v3', value: new THREE.Vector3(0, 0, 0) },
             },
             vertexShader: xRayVertex,
             fragmentShader: xRayFrag,
-            side: THREE.FrontSide,
+            side: THREE.DoubleSide,
             blending: THREE.AdditiveBlending,
             transparent: true,
-            //opacity: 0.1,
+            // opacity: 1.0,
+            //depthTest: true,
+            //depthWrite: true,
+            depthWrite: false,
+        });
+
+        const m = new THREE.MeshNormalMaterial({
+            transparent: true,
+            opacity: 0.4,
+            depthTest: true,
             depthWrite: true,
+            alphaTest: 0,
+            visible: true,
+            side: THREE.FrontSide,
         });
 
         const systemPoints = new THREE.Points(geometry, material);
-        const system = new THREE.Mesh(geometry2, customMaterial);
+        // const system = new THREE.Mesh(geometry2, customMaterial);
+
+        console.error("MEMORIES", this.memories);
+        // const test = {
+        //     geometry.
+        // }
+        console.error("BBUFFER MEMORY", this.mainBrain.bufferMemorySelected);
+
+        const xRayGeometry = new THREE.Geometry().fromBufferGeometry(this.mainBrain.endPointsCollections);
+        xRayGeometry.computeFaceNormals();
+        xRayGeometry.mergeVertices();
+        xRayGeometry.computeVertexNormals();
+
+        //const modifier = new THREE.BufferSubdivisionModifier(2);
+        //modifier.modify(xRayGeometry);
+
+        const system = new THREE.Mesh(xRayGeometry, customMaterial);
+
+        //systemPoints.visible = false;
+        //system.scale.multiplyScalar(1.05);
         systemPoints.castShadow = true;
         systemPoints.frustumCulled = false;
+        //systemPoints.visible = false;
 
         // // depth material is used for directional & spot light shadows
-        systemPoints.customDepthMaterial = BAS.Utils.createDepthAnimationMaterial(material);
+        // systemPoints.customDepthMaterial = BAS.Utils.createDepthAnimationMaterial(material);
         // // distance material is used for point light shadows
         systemPoints.customDistanceMaterial = BAS.Utils.createDistanceAnimationMaterial(material);
 
+        systemPoints.customDepthMaterial = new THREE.ShaderMaterial({
+            vertexShader: material.vertexShader,
+            fragmentShader: material.fragmentShader,
+            uniforms: material.uniforms,
+        });
 
-        //system.rotateX(-Math.PI / 2);
-        //systemPoints.rotateX(-Math.PI / 2);
+        // system.rotateX(-Math.PI / 2);
+        // systemPoints.rotateX(-Math.PI / 2);
         return { system, systemPoints };
     }
 

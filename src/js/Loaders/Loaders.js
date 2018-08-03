@@ -5,10 +5,11 @@ class Loaders {
     constructor(startAnimation) {
         this.BRAIN_MODEL = {};
         this.AMELIA_MODEL = {};
+        this.XRAY_MODEL = {};
         this.spark = {};
         this.FONT = {};
         this.assets = new Map();
-        this.models = ['brain-parts-big_08.OBJ', 'amelia_standingv2.obj'];
+        this.models = ['BrainUVs.obj'];
         this.loadingManager = new THREE.LoadingManager();
         this.startAnimation = startAnimation;
         this.loadingManager.onLoad = this.handlerLoad.bind(this);
@@ -16,6 +17,7 @@ class Loaders {
         this.loadingManager.onError = this.handlerError;
         this.loadingManager.onStart = this.handlerStart;
         this.setModel = this.setModel.bind(this);
+        this.loadBrainTextures();
         this.loadOBJs();
         this.loadTextures();
         this.loadFont();
@@ -39,9 +41,10 @@ class Loaders {
         switch (i) {
             case 0:
                 this.BRAIN_MODEL = model;
+                console.error("BRAIINNNNNN", model);
                 break;
             case 1:
-                this.AMELIA_MODEL = model;
+                this.XRAY_MODEL = model;
                 break;
             default:
                 this.BRAIN_MODEL = model;
@@ -61,6 +64,13 @@ class Loaders {
         const loader = new THREE.TextureLoader(this.loadingManager);
         loader.load('static/textures/spark1.png', (t) => {
             this.spark = t;
+        });
+    }
+
+    loadBrainTextures() {
+        const loader = new THREE.TextureLoader(this.loadingManager);
+        loader.load('static/textures/light-color.jpg', (t) => {
+            this.lightTexture = t;
         });
     }
 

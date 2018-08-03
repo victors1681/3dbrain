@@ -56,6 +56,7 @@ class ThinkingAnimation {
                     uMouse: { type: 'f', value: new THREE.Vector2(0.0) },
                     isCustomAlpha: { type: 'b', value: false },
                     uAlpha: { type: 'float', value: 0.0 },
+                    uResolution: { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
                 },
             vertexShader: flashingV,
             fragmentShader: flashingF,

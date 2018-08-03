@@ -34,6 +34,8 @@ class GUI {
             this.cameraPosition = function () {
                 console.log(mainBrain.camera.position);
             };
+            this.c = 1.0;
+            this.p = 1.0;
         }();
 
         const gui = new dat.GUI();
@@ -52,6 +54,14 @@ class GUI {
         gui.add(this.controls, 'lightIntensity', 0.0, 2.0).onChange((val) => {
             this.spotLight.intensity = val;
         });
+
+        gui.add(this.controls, 'c', 0.0, 2.0).onChange((val) => {
+            mainBrain.particlesSystem.xRay.material.uniforms.c.value = val;
+        });
+        gui.add(this.controls, 'p', 0.0, 20.0).onChange((val) => {
+            mainBrain.particlesSystem.xRay.material.uniforms.p.value = val;
+        });
+
 
         gui.add(this.controls, 'lightHelper').onChange((val) => {
             if (val) {

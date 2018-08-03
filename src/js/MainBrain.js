@@ -72,13 +72,14 @@ class MainBrain extends AbstractApplication {
                 return;
             }
             child.geometry.verticesNeedUpdate = true;
+            // child.material.map = this.loaders.lightTexture;
             this.brainBufferGeometries.push(child.geometry);
 
             this.memories = { ...this.memories, ...MainBrain.storeBrainVertices(child, this.memories) };
         });
 
         this.endPointsCollections = THREE.BufferGeometryUtils.mergeBufferGeometries(this.brainBufferGeometries);
-        console.log('Unique Geometry', this.endPointsCollections);
+        console.error('MERGE WITH TEXTURE', this.endPointsCollections);
     }
 
     startIntro() {
@@ -134,7 +135,7 @@ class MainBrain extends AbstractApplication {
         this.thinkingAnimation.initAnimation();
 
         // Set Background
-        //this.scene.background = this.loaders.assets.get('sky');
+        // this.scene.background = this.loaders.assets.get('sky');
 
         this.animate();
     }
@@ -145,14 +146,14 @@ class MainBrain extends AbstractApplication {
 
         this.deltaTime += this.clock.getDelta();
 
-        this.particlesSystem.update(this.deltaTime, this.camera, this.particlesSystem.particles);
+        this.particlesSystem.update(this.deltaTime, this.camera, this.particlesSystem.xRay);
         this.bubblesAnimation.update(this.camera, this.deltaTime);
         this.thinkingAnimation.update(this.camera, this.deltaTime);
 
         this.stats.update();
         requestAnimationFrame(this.animate.bind(this));
 
-        //this.renderer.render(this.a_scene, this.a_camera);
+        // this.renderer.render(this.a_scene, this.a_camera);
 
         this.font.facingToCamera(this.camera);
         this.camera.updateProjectionMatrix();
@@ -161,7 +162,7 @@ class MainBrain extends AbstractApplication {
         this.thinkingAnimation.flashing.geometry.attributes.position.needsUpdate = true;
 
 
-        //composer
+        // composer
         this.composer.render();
 
         if (this.isRecording) {
@@ -182,7 +183,8 @@ class MainBrain extends AbstractApplication {
     addParticlesSystem() {
         this.particlesSystem = new ParticleSystem(this, this.endPointsCollections, this.memories);
         this.scene.add(this.particlesSystem.particles);
-        //this.scene.add(this.particlesSystem.xRay);
+        this.scene.add(this.particlesSystem.xRay);
+        // this.scene.add(this.particlesSystem.xRay);
     }
 
     static getRandomPointOnSphere(r) {

@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import io from 'socket.io-client';
 import 'three/examples/js/controls/OrbitControls';
+import 'three/examples/js/modifiers/BufferSubdivisionModifier';
 import Stats from 'three/examples/js/libs/stats.min';
-import { EffectComposer, GlitchPass, BlurPass, RenderPass, ShaderPass, SepiaShader, BloomPass, OutlinePass } from 'postprocessing';
+import { EffectComposer, GlitchPass, BlurPass, RenderPass, ShaderPass, SepiaShader, BloomPass, OutlinePass, MaskPass, ClearMaskPass } from 'postprocessing';
 
 class AbstractApplication {
     constructor() {
@@ -12,10 +13,16 @@ class AbstractApplication {
 
         this.a_scene = new THREE.Scene();
         this.a_scene.background = new THREE.Color('#a7b6d2');
+
+        this.a_blurScene = new THREE.Scene();
+        this.a_bloomScene = new THREE.Scene();
+
         // this.a_scene.fog = new THREE.Fog(0xcce0ff, 100, 10000)
         this.a_scene.fog = new THREE.Fog(0xa7b6d2, 300, 1300);
 
-        this.a_renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: false });
+        this.a_renderer = new THREE.WebGLRenderer({
+            antialias: true, alpha: true, preserveDrawingBuffer: false, logarithmicDepthBuffer: true,
+        });
         this.a_renderer.setPixelRatio(window.devicePixelRatio);
         this.a_renderer.setSize(window.innerWidth, window.innerHeight);
         this.a_renderer.sortObjects = false;
@@ -27,42 +34,69 @@ class AbstractApplication {
         this.a_renderer.gammaOutput = true;
         this.a_renderer.shadowDepthMaterialSide = THREE.BackSide;
 
-        this.composer = new EffectComposer(this.a_renderer);
+        this.composer = new EffectComposer(this.a_renderer, {
+            stencilBuffer: true,
+            depthTexture: true,
+        });
 
-        //PASSES
+        // PASSES
         this.renderPass = new RenderPass(this.scene, this.camera);
+        //this.renderPass.renderToScreen = true;
         this.composer.addPass(this.renderPass);
 
-
-
-        //this.glitchPass = new GlitchPass();
-        //this.composer.addPass(this.glitchPass);
-        //this.glitchPass.renderToScreen = true;
-
-        //this.filmPass = new FilmPass();
-        //this.composer.addPass(this.filmPass);
-
-        // this.blurPass = new BlurPass();
-        // this.composer.addPass(this.blurPass);
-
+        // this.bloomMask = new MaskPass(this.bloomScene, this.camera);
+        // this.bloomMask.renderToScreen = true;
+        // //this.bloomMask.inverse = true;
+        // this.composer.addPass(this.bloomMask);
+        //
         this.bloomPass = new BloomPass({
             resolutionScale: 0.7,
-            resolution: 1.5,
-            intensity: 2.2,
-            distinction: 7.0,
+            resolution: 1.9,
+            intensity: 2.3,
+            distinction: 9.0,
             blend: true,
         });
 
-        this.composer.addPass(this.bloomPass);
         this.bloomPass.renderToScreen = true;
+        this.composer.addPass(this.bloomPass);
+        //
+        // this.composer.addPass(new ClearMaskPass());
 
+        this.blurMask = new MaskPass(this.blurScene, this.camera);
+       // this.blurMask.renderToScreen = true;
+        //this.composer.addPass(this.blurMask);
+        // this.blurMask.inverse = true;
+
+        this.renderPass2 = new RenderPass(this.blurScene, this.camera);
+        //this.renderPass2.renderToScreen = false;
+        //this.composer.addPass(this.renderPass2);
+
+
+        this.blurPass = new BlurPass();
+        this.blurPass.renderToScreen = true;
+
+       // this.composer.addPass(this.blurPass);
+
+        //
+        //this.composer.addPass(new ClearMaskPass());
+
+
+
+
+        //
+        // this.blurPass = new BlurPass();
+        // this.composer.addPass(blurMask);
+        // this.composer.addPass(this.blurPass);
+
+        // this.blurPass.renderToScreen = true;
+        // this.bloomPass.renderToScreen = true;
 
 
         document.body.appendChild(this.a_renderer.domElement);
 
         this.stats = AbstractApplication.initStats(document.body);
 
-        this.orbitControls = new THREE.OrbitControls(this.a_camera, this.a_renderer.domElement);
+        this.orbitControls = new THREE.OrbitControls(this.camera, this.a_renderer.domElement);
         this.orbitControls.enableDamping = true;
         this.orbitControls.dampingFactor = 0.25;
         this.orbitControls.enableZoom = true;
@@ -100,6 +134,13 @@ class AbstractApplication {
 
     get scene() {
         return this.a_scene;
+    }
+
+    get blurScene() {
+        return this.a_blurScene;
+    }
+    get bloomScene() {
+        return this.a_bloomScene;
     }
 
     static initStats(render) {
