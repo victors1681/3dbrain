@@ -36,6 +36,8 @@ class GUI {
             };
             this.c = 1.0;
             this.p = 1.0;
+            this.offsetY = 0.1;
+            this.showXray = false;
         }();
 
         const gui = new dat.GUI();
@@ -51,6 +53,8 @@ class GUI {
             mainBrain.isRecording = val;
         });
 
+        gui.add(this.controls, 'showXray').onChange((e) => { mainBrain.particlesSystem.isXrayActivate(e); });
+
         gui.add(this.controls, 'lightIntensity', 0.0, 2.0).onChange((val) => {
             this.spotLight.intensity = val;
         });
@@ -60,6 +64,10 @@ class GUI {
         });
         gui.add(this.controls, 'p', 0.0, 20.0).onChange((val) => {
             mainBrain.particlesSystem.xRay.material.uniforms.p.value = val;
+        });
+
+        gui.add(this.controls, 'offsetY', 0.0, 2.0).onChange((val) => {
+            mainBrain.particlesSystem.xRay.material.uniforms.offsetY.value = val;
         });
 
 

@@ -114,7 +114,7 @@ class ParticleSystem {
                 uColor: { value: new THREE.Color(0xffffff) },
             },
             defines: {
-                //USE_SIZEATTENUATION: false, // Change size of the particle depending of the camera
+                // USE_SIZEATTENUATION: false, // Change size of the particle depending of the camera
             },
             uniformValues: {
                 size: 1.9,
@@ -221,13 +221,16 @@ class ParticleSystem {
 
         // const materialCameraPosition = this.mainBrain.camera.position.clone();
         // materialCameraPosition.z += 10;
-
+        console.error('TEXTUREEEE', this.mainBrain.loaders.lightTexture);
         const customMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 c: { type: 'f', value: 0.9 },
                 p: { type: 'f', value: 6.7 },
                 glowColor: { type: 'c', value: new THREE.Color(0x84ccff) },
                 viewVector: { type: 'v3', value: new THREE.Vector3(0, 0, 0) },
+                lightningTexture: { type: 't', value: this.mainBrain.loaders.lightTexture },
+                offsetY: { type: 'f', value: 0.3 },
+                uTime: { type: 'f', value: 0.0 },
             },
             vertexShader: xRayVertex,
             fragmentShader: xRayFrag,
@@ -235,8 +238,8 @@ class ParticleSystem {
             blending: THREE.AdditiveBlending,
             transparent: true,
             // opacity: 1.0,
-            //depthTest: true,
-            //depthWrite: true,
+            // depthTest: true,
+            // depthWrite: true,
             depthWrite: false,
         });
 
@@ -253,27 +256,27 @@ class ParticleSystem {
         const systemPoints = new THREE.Points(geometry, material);
         // const system = new THREE.Mesh(geometry2, customMaterial);
 
-        console.error("MEMORIES", this.memories);
+        console.error('MEMORIES', this.memories);
         // const test = {
         //     geometry.
         // }
-        console.error("BBUFFER MEMORY", this.mainBrain.bufferMemorySelected);
+        console.error('BBUFFER MEMORY', this.mainBrain.bufferMemorySelected);
 
         const xRayGeometry = new THREE.Geometry().fromBufferGeometry(this.mainBrain.endPointsCollections);
         xRayGeometry.computeFaceNormals();
         xRayGeometry.mergeVertices();
         xRayGeometry.computeVertexNormals();
 
-        //const modifier = new THREE.BufferSubdivisionModifier(2);
-        //modifier.modify(xRayGeometry);
+        // const modifier = new THREE.BufferSubdivisionModifier(2);
+        // modifier.modify(xRayGeometry);
 
         const system = new THREE.Mesh(xRayGeometry, customMaterial);
 
-        //systemPoints.visible = false;
-        //system.scale.multiplyScalar(1.05);
+        // systemPoints.visible = false;
+        // system.scale.multiplyScalar(1.05);
         systemPoints.castShadow = true;
         systemPoints.frustumCulled = false;
-        //systemPoints.visible = false;
+        // systemPoints.visible = false;
 
         // // depth material is used for directional & spot light shadows
         // systemPoints.customDepthMaterial = BAS.Utils.createDepthAnimationMaterial(material);
@@ -297,6 +300,34 @@ class ParticleSystem {
         // this.particles.customDistanceMaterial.uniforms.uTime.value = Math.sin(deltaTime);
         this.particles.material.uniforms.uTime.value = deltaTime;
         this.xRay.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(camera.position, brain.position);
+        //console.log("Value", Math.sin(deltaTime));
+
+        //this.xRay.material.uniforms.c.value =Math.sin(deltaTime);
+        this.xRay.material.uniforms.uTime.value = deltaTime;
+    }
+
+    isXrayActivate(status) {
+        if (status) {
+            const progress = { p: 0.0 };
+            TweenMax.fromTo(progress, 3.0, { p: 3.0 }, {
+                p: 5.0,
+                ease: Power1.easeIn,
+                onUpdate: () => {
+                    this.xRay.material.uniforms.offsetY.value = Math.sin(progress.p);
+                },
+                onComplete: () => {
+                },
+            });
+        } else {
+            const progress = { p: 1.0 };
+            TweenMax.fromTo(progress, 3.0, { p: 5.0 }, {
+                p: 3.0,
+                ease: Power1.easeIn,
+                onUpdate: () => {
+                    this.xRay.material.uniforms.offsetY.value = Math.sin(progress.p);
+                },
+            });
+        }
     }
 
     updateTransitioning(val) {

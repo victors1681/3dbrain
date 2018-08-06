@@ -63,7 +63,7 @@ class AbstractApplication {
         // this.composer.addPass(new ClearMaskPass());
 
         this.blurMask = new MaskPass(this.blurScene, this.camera);
-       // this.blurMask.renderToScreen = true;
+        // this.blurMask.renderToScreen = true;
         //this.composer.addPass(this.blurMask);
         // this.blurMask.inverse = true;
 

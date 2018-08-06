@@ -69,7 +69,7 @@ class Loaders {
 
     loadBrainTextures() {
         const loader = new THREE.TextureLoader(this.loadingManager);
-        loader.load('static/textures/light-color.jpg', (t) => {
+        loader.load('static/textures/light3.png', (t) => {
             this.lightTexture = t;
         });
     }
