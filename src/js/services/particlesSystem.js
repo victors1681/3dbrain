@@ -15,9 +15,9 @@ class ParticleSystem {
         this.mainBrain = mainBrain;
         this.particlesStartColor = new THREE.Color(0xffffff);
         this.particlesColor = new THREE.Color(0xffffff);
-        const { system, systemPoints } = this.init();
+        const { xRayEffect, systemPoints } = this.init();
         this.particles = systemPoints;
-        this.xRay = system;
+        this.xRay = xRayEffect;
     }
 
     static getLoadingPoints() {
@@ -219,16 +219,13 @@ class ParticleSystem {
 
         });
 
-        // const materialCameraPosition = this.mainBrain.camera.position.clone();
-        // materialCameraPosition.z += 10;
-        console.error('TEXTUREEEE', this.mainBrain.loaders.lightTexture);
-        const customMaterial = new THREE.ShaderMaterial({
+        const xRayMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 c: { type: 'f', value: 0.9 },
                 p: { type: 'f', value: 6.7 },
                 glowColor: { type: 'c', value: new THREE.Color(0x84ccff) },
                 viewVector: { type: 'v3', value: new THREE.Vector3(0, 0, 0) },
-                lightningTexture: { type: 't', value: this.mainBrain.loaders.lightTexture },
+                lightningTexture: { type: 't', value: this.mainBrain.loaders.brainXRayLight },
                 offsetY: { type: 'f', value: 0.3 },
                 uTime: { type: 'f', value: 0.0 },
             },
@@ -237,40 +234,18 @@ class ParticleSystem {
             side: THREE.DoubleSide,
             blending: THREE.AdditiveBlending,
             transparent: true,
-            // opacity: 1.0,
-            // depthTest: true,
-            // depthWrite: true,
             depthWrite: false,
         });
 
-        const m = new THREE.MeshNormalMaterial({
-            transparent: true,
-            opacity: 0.4,
-            depthTest: true,
-            depthWrite: true,
-            alphaTest: 0,
-            visible: true,
-            side: THREE.FrontSide,
-        });
-
         const systemPoints = new THREE.Points(geometry, material);
-        // const system = new THREE.Mesh(geometry2, customMaterial);
 
         console.error('MEMORIES', this.memories);
-        // const test = {
-        //     geometry.
-        // }
-        console.error('BBUFFER MEMORY', this.mainBrain.bufferMemorySelected);
-
         const xRayGeometry = new THREE.Geometry().fromBufferGeometry(this.mainBrain.endPointsCollections);
         xRayGeometry.computeFaceNormals();
         xRayGeometry.mergeVertices();
         xRayGeometry.computeVertexNormals();
 
-        // const modifier = new THREE.BufferSubdivisionModifier(2);
-        // modifier.modify(xRayGeometry);
-
-        const system = new THREE.Mesh(xRayGeometry, customMaterial);
+        const xRayEffect = new THREE.Mesh(xRayGeometry, xRayMaterial);
 
         // systemPoints.visible = false;
         // system.scale.multiplyScalar(1.05);
@@ -291,7 +266,7 @@ class ParticleSystem {
 
         // system.rotateX(-Math.PI / 2);
         // systemPoints.rotateX(-Math.PI / 2);
-        return { system, systemPoints };
+        return { xRayEffect, systemPoints };
     }
 
 
@@ -300,13 +275,13 @@ class ParticleSystem {
         // this.particles.customDistanceMaterial.uniforms.uTime.value = Math.sin(deltaTime);
         this.particles.material.uniforms.uTime.value = deltaTime;
         this.xRay.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(camera.position, brain.position);
-        //console.log("Value", Math.sin(deltaTime));
+        // console.log("Value", Math.sin(deltaTime));
 
-        //this.xRay.material.uniforms.c.value =Math.sin(deltaTime);
+        // this.xRay.material.uniforms.c.value =Math.sin(deltaTime);
         this.xRay.material.uniforms.uTime.value = deltaTime;
     }
 
-    isXrayActivate(status) {
+    isXRayActive(status) {
         if (status) {
             const progress = { p: 0.0 };
             TweenMax.fromTo(progress, 3.0, { p: 3.0 }, {

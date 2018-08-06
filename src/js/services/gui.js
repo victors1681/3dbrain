@@ -53,7 +53,7 @@ class GUI {
             mainBrain.isRecording = val;
         });
 
-        gui.add(this.controls, 'showXray').onChange((e) => { mainBrain.particlesSystem.isXrayActivate(e); });
+        gui.add(this.controls, 'showXray').onChange((e) => { mainBrain.particlesSystem.isXRayActive(e); });
 
         gui.add(this.controls, 'lightIntensity', 0.0, 2.0).onChange((val) => {
             this.spotLight.intensity = val;

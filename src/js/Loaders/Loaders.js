@@ -4,9 +4,7 @@ import 'three/examples/js/loaders/OBJLoader';
 class Loaders {
     constructor(startAnimation) {
         this.BRAIN_MODEL = {};
-        this.AMELIA_MODEL = {};
-        this.XRAY_MODEL = {};
-        this.spark = {};
+        this.brainXRayLight = {};
         this.FONT = {};
         this.assets = new Map();
         this.models = ['BrainUVs.obj'];
@@ -41,7 +39,6 @@ class Loaders {
         switch (i) {
             case 0:
                 this.BRAIN_MODEL = model;
-                console.error("BRAIINNNNNN", model);
                 break;
             case 1:
                 this.XRAY_MODEL = model;
@@ -69,8 +66,8 @@ class Loaders {
 
     loadBrainTextures() {
         const loader = new THREE.TextureLoader(this.loadingManager);
-        loader.load('static/textures/light3.png', (t) => {
-            this.lightTexture = t;
+        loader.load('static/textures/brainXRayLight.png', (t) => {
+            this.brainXRayLight = t;
         });
     }
 
