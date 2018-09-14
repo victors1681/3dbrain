@@ -37,14 +37,15 @@ class BubblesAnimation {
             const memoryGroup = BubblesAnimation.getSubsystemGroup(m.subsystem) || 'episodic';
 
             const memory = memories[memoryGroup][0].attributes.position.array;
-            const randomPos = THREE.Math.randInt(0, (memory.length / 3) - 4);
+            const randomPos = THREE.Math.randInt(3 * 1500, (memory.length / 3) - 4);
 
-            // const x = memory[(randomPos * 3) + 0] || 0;
-            // let y = memory[(randomPos * 3) + 1] || 0;
-            // const z = memory[(randomPos * 3) + 2] || 0;
+            const x = memory[(randomPos * 3) + 0] || 0;
+            const y = memory[(randomPos * 3) + 1] || 0;
+            const z = memory[(randomPos * 3) + 2] || 0;
 
-            const x = memory[0];
-            const z = memory[2];
+            // const x = memory[0];
+            // const y = memory[1];
+            // const z = memory[2];
 
             let altitude = THREE.Math.randInt(120, 150);
             const parent = this.mainBrain.particlesSystem.particles;
@@ -52,15 +53,22 @@ class BubblesAnimation {
             if (winner === m.subsystem) {
                 altitude = 200; // highest position
 
-                bubbleList.push(x, 180, z, 3.0); // w = 3.0 for the winner
+                const geometry = new THREE.SphereGeometry(2, 32, 32);
+                const material = new THREE.MeshNormalMaterial();
+
+                const mesh = new THREE.Mesh(geometry, material);
+                parent.add(mesh);
+                mesh.position.set(x, y, z);
+
+                bubbleList.push(x, y + 150.0, z, 3.0); // w = 3.0 for the winner
             } else {
-                bubbleList.push(x, altitude, z, 2.0); // w = 2.0 for select biggest bubbles
+                // bubbleList.push(x, altitude, z, 2.0); // w = 2.0 for select biggest bubbles
             }
             const group = new THREE.Object3D();
             parent.add(group);
 
-            this.mainBrain.font.makeTextSprite(_.capitalize(m.subsystem), group, new THREE.Vector3(x, altitude - 15, z), 4);
-            this.mainBrain.font.makeTextSprite(m.time, group, new THREE.Vector3(x, altitude - 19, z), 2.0);
+            // this.mainBrain.font.makeTextSprite(_.capitalize(m.subsystem), group, new THREE.Vector3(x, altitude - 15, z), 4);
+            // this.mainBrain.font.makeTextSprite(m.time, group, new THREE.Vector3(x, altitude - 19, z), 2.0);
         });
 
         // Inject bubbles selected in to the all flashing bubbles replace the older one
@@ -147,6 +155,7 @@ class BubblesAnimation {
 
         // bubbles = this.getBubblesSelected(bubbles);
 
+        // Add fake shining bubbles
         for (let i = 0; i < particles - (this.memorySelected.length * 3); i += 1) {
             const r = THREE.Math.randInt(0, 4);
             const mSelector = this.memorySelected[r];
@@ -207,7 +216,7 @@ class BubblesAnimation {
         this.bubbles = new THREE.Points(geometry, customMaterial);
         this.bubbles.name = 'memory';
         scene.add(this.bubbles);
-        console.log(this.bubbles);
+        console.log('Bubble Object', this.bubbles);
     }
 
     updateSubSystem(subsystemPayload) {
@@ -235,6 +244,7 @@ class BubblesAnimation {
                 }
             },
             onComplete: () => {
+                // This function alter the bubblesAttr buffer
                 this.getBubblesSelected(bubblesAttr, payload);
                 this.bubbles.geometry.attributes.bubbles.needsUpdate = true;
                 this.animate(true);

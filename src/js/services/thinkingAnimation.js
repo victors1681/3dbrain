@@ -74,7 +74,7 @@ class ThinkingAnimation {
     }
 
     animationCamera(val) {
-        //this.mainBrain.isRecording = true;
+        this.mainBrain.isRecording = true;
         // this.isActive(true);
         this.flashing.material.uniforms.uFadeTime.value = 1;
         this.isFlashing = true;

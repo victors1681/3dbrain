@@ -51,7 +51,7 @@ class AbstractApplication {
         //
         this.bloomPass = new BloomPass({
             resolutionScale: 0.7,
-            resolution: 1.9,
+            resolution: 2.9,
             intensity: 2.3,
             distinction: 9.0,
             blend: true,
@@ -59,37 +59,9 @@ class AbstractApplication {
 
         this.bloomPass.renderToScreen = true;
         this.composer.addPass(this.bloomPass);
-        //
-        // this.composer.addPass(new ClearMaskPass());
 
         this.blurMask = new MaskPass(this.blurScene, this.camera);
-        // this.blurMask.renderToScreen = true;
-        //this.composer.addPass(this.blurMask);
-        // this.blurMask.inverse = true;
-
         this.renderPass2 = new RenderPass(this.blurScene, this.camera);
-        //this.renderPass2.renderToScreen = false;
-        //this.composer.addPass(this.renderPass2);
-
-
-        this.blurPass = new BlurPass();
-        this.blurPass.renderToScreen = true;
-
-       // this.composer.addPass(this.blurPass);
-
-        //
-        //this.composer.addPass(new ClearMaskPass());
-
-
-
-
-        //
-        // this.blurPass = new BlurPass();
-        // this.composer.addPass(blurMask);
-        // this.composer.addPass(this.blurPass);
-
-        // this.blurPass.renderToScreen = true;
-        // this.bloomPass.renderToScreen = true;
 
 
         document.body.appendChild(this.a_renderer.domElement);

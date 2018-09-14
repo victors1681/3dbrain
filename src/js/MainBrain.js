@@ -135,7 +135,7 @@ class MainBrain extends AbstractApplication {
         this.thinkingAnimation.initAnimation();
 
         // Set Background
-        // this.scene.background = this.loaders.assets.get('sky');
+        //this.scene.background = this.loaders.assets.get('sky');
 
         this.animate();
     }
@@ -153,7 +153,7 @@ class MainBrain extends AbstractApplication {
         this.stats.update();
         requestAnimationFrame(this.animate.bind(this));
 
-        // this.renderer.render(this.a_scene, this.a_camera);
+        //this.renderer.render(this.a_scene, this.a_camera);
 
         this.font.facingToCamera(this.camera);
         this.camera.updateProjectionMatrix();

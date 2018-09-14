@@ -73,9 +73,9 @@ class GUI {
 
         gui.add(this.controls, 'lightHelper').onChange((val) => {
             if (val) {
-                this.scene.add(this.spotLightHelper);
+                mainBrain.scene.add(mainBrain.spotLightHelper);
             } else {
-                this.scene.remove(this.spotLightHelper);
+                mainBrain.scene.remove(mainBrain.spotLightHelper);
             }
         });
         gui.add(this.controls, 'cameraAnimation', 0, 5).onFinishChange((val) => {
@@ -83,7 +83,7 @@ class GUI {
         });
 
         gui.add(this.controls, 'lightDistance', 0.0, 1800.0).onChange((val) => {
-            this.spotLight.position.set(0, val, -10);
+            mainBrain.spotLight.position.set(0, val, -10);
         });
 
         gui.add(this.controls, 'uBurbleUp', 0.0, 1.0).onChange((val) => {
@@ -91,18 +91,15 @@ class GUI {
         });
 
         gui.add(this.controls, 'memory', 0, 4).onChange((val) => {
-            // mainBrain.bubblesAnimation.initAnimation(mainBrain.bubblesAnimation.memorySelected[ Math.floor(val) ])
             mainBrain.bubblesAnimation.updateSubSystem(testPayload);
         });
 
         gui.addColor(this.controls, 'particleGlow').onChange((e) => {
-            //mainBrain.material.uniforms.uBackColor.value = new THREE.Color(e);
             mainBrain.scene.background = new THREE.Color(e);
         });
 
 
         gui.addColor(this.controls, 'floor').onChange((e) => {
-            console.log(this.plane.material.color);
             mainBrain.plane.material.color = new THREE.Color(e);
         });
 
