@@ -18,9 +18,9 @@
     "url": "https://dtools.ipsoft.com/"
   },
   "scripts": {
-    "dev": "webpack-dev-server --inline --progress --host 0.0.0.0 --config build/webpack.dev.conf.js --port 8085",
+    "dev": "webpack-dev-server --inline --progress --host 0.0.0.0 --config build/webpack.dev.conf.js",
     "start": "npm run dev",
-    "lint": "eslint --ext .js src",
+    "lint": "eslint --ext .js src --fix",
     "build": "node build/build.js",
     "dist": "build/webpack.prod.conf.js",
     "test": "jest",
