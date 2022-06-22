@@ -1,5 +1,7 @@
 Amelia Brain Module 2.0 Experiment Three.js
 
+[VIEWO DEMO](https://youtube.com/shorts/aLK8OvMf4dM?feature=share](https://www.youtube.com/watch?v=y0XOuSNlHx8)
+
 ![alt text](https://raw.githubusercontent.com/victors1681/3dbrain/master/screenshot/brain3d.png)
 
 ## How to install
