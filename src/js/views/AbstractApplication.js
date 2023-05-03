@@ -5,15 +5,9 @@ import "three/examples/js/modifiers/BufferSubdivisionModifier";
 import Stats from "three/examples/js/libs/stats.min";
 import {
   EffectComposer,
-  GlitchPass,
-  BlurPass,
   RenderPass,
-  ShaderPass,
-  SepiaShader,
   BloomPass,
-  OutlinePass,
   MaskPass,
-  ClearMaskPass,
 } from "postprocessing";
 
 class AbstractApplication {
@@ -25,7 +19,6 @@ class AbstractApplication {
       1000
     );
     this.a_camera.position.z = 1000;
-    // this.ambienColor = '#E7EBF3'
 
     this.a_scene = new THREE.Scene();
     this.a_scene.background = new THREE.Color("#a7b6d2");
@@ -33,7 +26,6 @@ class AbstractApplication {
     this.a_blurScene = new THREE.Scene();
     this.a_bloomScene = new THREE.Scene();
 
-    // this.a_scene.fog = new THREE.Fog(0xcce0ff, 100, 10000)
     this.a_scene.fog = new THREE.Fog(0xa7b6d2, 300, 1300);
 
     this.a_renderer = new THREE.WebGLRenderer({
@@ -63,11 +55,7 @@ class AbstractApplication {
     //this.renderPass.renderToScreen = true;
     this.composer.addPass(this.renderPass);
 
-    // this.bloomMask = new MaskPass(this.bloomScene, this.camera);
-    // this.bloomMask.renderToScreen = true;
-    // //this.bloomMask.inverse = true;
-    // this.composer.addPass(this.bloomMask);
-    //
+
     this.bloomPass = new BloomPass({
       resolutionScale: 0.7,
       resolution: 2.9,

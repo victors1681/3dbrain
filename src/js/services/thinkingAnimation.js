@@ -40,7 +40,7 @@ class ThinkingAnimation {
 
         geometry.addAttribute(
             'aDelayDuration',
-            new THREE.Float32Attribute(delay, 2),
+            new THREE.Float32BufferAttribute(delay, 2),
         );
         geometry.addAttribute(
             'position',
@@ -71,7 +71,6 @@ class ThinkingAnimation {
             blending: THREE.AdditiveBlending,
             side: THREE.DoubleSide,
             depthTest: false,
-            depthWrite: true,
             transparent: true,
         });
         this.flashing = new THREE.Points(geometry, customMaterial);
@@ -80,7 +79,7 @@ class ThinkingAnimation {
     }
 
     animationCamera(val) {
-        this.mainBrain.isRecording = true;
+        this.mainBrain.isRecording = false;
         // this.isActive(true);
         this.flashing.material.uniforms.uFadeTime.value = 1;
         this.isFlashing = true;
@@ -127,9 +126,7 @@ class ThinkingAnimation {
         const light = lights[Math.floor(val)];
 
         const locations = flashingCoordinates[light];
-
-        if (locations.camera === -1) {
-            this.mainBrain.isRecording = false;
+        if (!locations) {
             return;
         }
 
