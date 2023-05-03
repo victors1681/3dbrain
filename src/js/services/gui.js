@@ -28,10 +28,10 @@ class GUI {
       this.particleGlow = 0xdde3e9;
       this.memory = 1;
       this.thinking = false;
-      this.startIntro = false;
+      this.startIntro = true;
       this.recording = false;
       this.cameraAnimation = 1;
-      this.c = 1.0;
+      this.c = 1.11;
       this.p = 1.0;
       this.offsetY = 0.1;
       this.showXray = false;
@@ -74,7 +74,7 @@ class GUI {
         mainBrain.scene.remove(mainBrain.spotLightHelper);
       }
     });
-    gui.add(this.controls, "cameraAnimation", 0, 5).onFinishChange((val) => {
+    gui.add(this.controls, "cameraAnimation", 0, 4).onFinishChange((val) => {
       mainBrain.thinkingAnimation.animationCamera(val);
     });
 

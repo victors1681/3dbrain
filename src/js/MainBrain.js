@@ -1,8 +1,8 @@
 /* eslint no-param-reassign: ["error", { "props": true, "ignorePropertyModificationsFor": ["child", memories] }] */
 import * as THREE from "three";
-import { Power1, Power4, TweenMax, Back } from "gsap";
+import { Power4, TweenMax } from "gsap";
 import "three/examples/js/BufferGeometryUtils";
-import AbstractApplication from "views/AbstractApplication";
+import AbstractApplication from "./views/AbstractApplication";
 import Loaders from "./Loaders/Loaders";
 import BubblesAnimation from "./services/bubblesAnimation";
 import ThinkingAnimation from "./services/thinkingAnimation";
@@ -35,6 +35,9 @@ class MainBrain extends AbstractApplication {
     this.frame = 0;
     this.frameName = 0;
     this.isRecording = false;
+    setTimeout(() => {
+      this.startIntro();
+    }, 1000);
   }
 
   addFloor() {
@@ -107,7 +110,6 @@ class MainBrain extends AbstractApplication {
     this.endPointsCollections = THREE.BufferGeometryUtils.mergeBufferGeometries(
       this.brainBufferGeometries
     );
-    console.error("MERGE WITH TEXTURE", this.endPointsCollections);
   }
 
   startIntro() {
@@ -125,8 +127,38 @@ class MainBrain extends AbstractApplication {
         onStart: () => {
           this.particlesSystem.transform(true);
         },
+        onComplete: () => {
+          //hide xray
+          this.particlesSystem.xRay.material.uniforms.c.value = 1.0;
+          this.startAutoDemo();
+        }
       }
     );
+  }
+
+  startAutoDemo() {
+    let memoryCount = 1;
+    this.scene.add(this.particlesSystem.xRay);
+    let memoryTimer;
+    const me = this;
+    setTimeout(() => {
+      //enable xRay Animation
+      this.particlesSystem.isXRayActive(true);
+      setTimeout(() => {
+        //remove animation
+        this.particlesSystem.isXRayActive(false);
+        //Enable Memories
+        memoryTimer = setInterval(() => {
+          if (memoryCount < 5) {
+            this.bubblesAnimation.updateSubSystem(memoryCount);
+            memoryCount += 1;
+          } else {
+            this.bubblesAnimation.updateSubSystem(0);
+            clearInterval(memoryTimer);
+          }
+        }, 9000);
+      }, 4000);
+    }, 2000);
   }
 
   static addLinesPath(mesh, memories) {
@@ -225,8 +257,6 @@ class MainBrain extends AbstractApplication {
       this.memories
     );
     this.scene.add(this.particlesSystem.particles);
-    this.scene.add(this.particlesSystem.xRay);
-    // this.scene.add(this.particlesSystem.xRay);
   }
 
   static getRandomPointOnSphere(r) {

@@ -264,20 +264,13 @@ class ParticleSystem {
             uniforms: material.uniforms,
         });
 
-        // system.rotateX(-Math.PI / 2);
-        // systemPoints.rotateX(-Math.PI / 2);
         return { xRayEffect, systemPoints };
     }
 
 
     update(deltaTime, camera, brain) {
-        // / this.particles.customDepthMaterial.uniforms.uTime.value = Math.sin(deltaTime);
-        // this.particles.customDistanceMaterial.uniforms.uTime.value = Math.sin(deltaTime);
         this.particles.material.uniforms.uTime.value = deltaTime;
         this.xRay.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(camera.position, brain.position);
-        // console.log("Value", Math.sin(deltaTime));
-
-        // this.xRay.material.uniforms.c.value =Math.sin(deltaTime);
         this.xRay.material.uniforms.uTime.value = deltaTime;
     }
 

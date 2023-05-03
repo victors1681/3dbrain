@@ -1,22 +1,15 @@
 {
-  "name": "amelia_brain",
-  "description": "",
+  "name": "3dbrain",
+  "description": "ThreeJS Brain Visualization",
   "version": "2.0.1",
   "main": "dist/amelia_brain.js",
-  "repository": {
-    "type": "git",
-    "url": "ssh://git@dtools.ipsoft.com:7999/~santosv/ameliabrain2.git"
-  },
   "keywords": [
     "amelia",
     "brain",
     "ai"
   ],
-  "author": "Victor Santos <victor.santos@ipsoft.com>",
-  "license": "GNU AGPLv3",
-  "bugs": {
-    "url": "https://dtools.ipsoft.com/"
-  },
+  "author": "Victor Santos",
+  "license": "MIT",
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --host 0.0.0.0 --config build/webpack.dev.conf.js",
     "start": "npm run dev",
@@ -27,7 +20,8 @@
     "test:clean": "rimraf ./coverage",
     "test:watch": "jest --watch",
     "test:watchAll": "jest --watchAll",
-    "test:coverage:report": "open ./coverage/lcov-report/index.html"
+    "test:coverage:report": "open ./coverage/lcov-report/index.html",
+    "deploy": "npm run build && firebase deploy"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
@@ -94,15 +88,12 @@
     "glslify-fancy-imports": "^1.0.1",
     "glslify-hex": "^2.0.1",
     "gsap": "^1.20.4",
-    "i": "^0.3.6",
     "lodash": "^4.17.10",
     "postprocessing": "^4.5.0",
     "socket.io-client": "^2.1.1",
     "test": "^0.6.0",
     "three": "^0.91.0",
-    "three-bas": "^2.7.0",
-    "webvr-polyfill": "^0.10.2",
-    "webvr-ui": "^0.10.0"
+    "three-bas": "^2.7.0"
   },
   "browserify": {
     "transform": [

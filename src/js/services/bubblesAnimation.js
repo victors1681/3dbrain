@@ -5,7 +5,7 @@ import _ from 'lodash';
 import glowVertex from '../shaders/glow.vert';
 import glowFrag from '../shaders/glow.frag';
 import memoryMapping from '../data/memoryMaping.json';
-import testPayload from '../data/testPayload';
+import testPayload from '../data/testPayload.json';
 
 class BubblesAnimation {
     constructor(mainBrain) {
@@ -42,11 +42,6 @@ class BubblesAnimation {
             const x = memory[(randomPos * 3) + 0] || 0;
             const y = memory[(randomPos * 3) + 1] || 0;
             const z = memory[(randomPos * 3) + 2] || 0;
-
-            // const x = memory[0];
-            // const y = memory[1];
-            // const z = memory[2];
-
             let altitude = THREE.Math.randInt(120, 150);
             const parent = this.mainBrain.particlesSystem.particles;
 
@@ -61,14 +56,9 @@ class BubblesAnimation {
                 mesh.position.set(x, y, z);
 
                 bubbleList.push(x, y + 150.0, z, 3.0); // w = 3.0 for the winner
-            } else {
-                // bubbleList.push(x, altitude, z, 2.0); // w = 2.0 for select biggest bubbles
             }
             const group = new THREE.Object3D();
             parent.add(group);
-
-            // this.mainBrain.font.makeTextSprite(_.capitalize(m.subsystem), group, new THREE.Vector3(x, altitude - 15, z), 4);
-            // this.mainBrain.font.makeTextSprite(m.time, group, new THREE.Vector3(x, altitude - 19, z), 2.0);
         });
 
         // Inject bubbles selected in to the all flashing bubbles replace the older one
@@ -153,8 +143,6 @@ class BubblesAnimation {
         const bubbles = [];
         const memory = [];
 
-        // bubbles = this.getBubblesSelected(bubbles);
-
         // Add fake shining bubbles
         for (let i = 0; i < particles - (this.memorySelected.length * 3); i += 1) {
             const r = THREE.Math.randInt(0, 4);
@@ -178,8 +166,8 @@ class BubblesAnimation {
             delay[(i * 2) + 1] = duration;
         }
 
-        geometry.addAttribute('aDelayDuration', new THREE.Float32Attribute(delay, 2));
-        geometry.addAttribute('bubbles', new THREE.Float32Attribute(bubbles, 4));
+        geometry.addAttribute('aDelayDuration', new THREE.Float32BufferAttribute(delay, 2));
+        geometry.addAttribute('bubbles', new THREE.Float32BufferAttribute(bubbles, 4));
         geometry.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
         geometry.addAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
@@ -204,12 +192,11 @@ class BubblesAnimation {
                     },
             vertexShader: glowVertex,
             fragmentShader: glowFrag,
-            shading: THREE.SmoothShading,
+            flatShading: THREE.SmoothShading,
             blending: THREE.AdditiveBlending,
             side: THREE.DoubleSide,
             depthTest: false,
             vertexColors: false,
-            depthWrite: true,
             transparent: true,
 
         });
@@ -235,8 +222,6 @@ class BubblesAnimation {
             ease: Power1.easeInOut,
             onUpdate: () => {
                 this.updateBurbleUp(progress.p);
-                // this.mainBrain.orbitControls.target.set(target.x, target.y - progress.p, target.z);
-                // this.mainBrain.camera.position.set(cameraPos.x, cameraPos.y - progress.p, cameraPos.z);
             },
             onStart: () => {
                 if (this.fistCameraReposition) {
@@ -254,8 +239,9 @@ class BubblesAnimation {
         });
     }
 
-    static processSubsystemResponses(realPayload) {
-        const response = testPayload.attributes;
+    static processSubsystemResponses(memoryNumber = 0) {
+        const response = Math.floor(testPayload[memoryNumber]) && Math.floor(testPayload[memoryNumber]).attributes || { subsystemResults: [] };
+
         const winner = response.winningSubsystem;
         const { subsystemResults } = response;
         const winnerGroup = BubblesAnimation.getSubsystemGroup(winner);
